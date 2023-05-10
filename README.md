@@ -6,11 +6,11 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 
 ## A Quick Overview 
 
-<img width="880" height="300" src="https://github.com/WuJunde/Medical-SAM-Adapter/blob/main/figs/medsamadpt.jpeg">
-| *Medical-SAM-Adapted
+<img width="880" height="400" src="https://github.com/WuJunde/Medical-SAM-Adapter/blob/main/figs/medsamadpt.jpeg">
+| Medical-SAM-Adapted |
 
 ## News
-- 22-11-30. This project is still quickly updating. Check TODO list to see what will be released next.
+- 23-05-10. This project is still quickly updating. Check TODO list to see what will be released next.
 
 ## Requirement
 
@@ -20,7 +20,7 @@ Download [SAM checkpoint](https://dl.fbaipublicfiles.com/segment_anything/sam_vi
 
 ## Example Cases
 ### Melanoma Segmentation from Skin Images (2D)
-1. Download ISIC dataset from https://challenge.isic-archive.com/data/. Your dataset folder under "your_data_path" should be like:
+Download ISIC dataset from https://challenge.isic-archive.com/data/. Your dataset folder under "your_data_path" should be like:
 
 ISIC/
 
@@ -32,13 +32,11 @@ ISIC/
      
      ISBI2016_ISIC_Part3B_Training_GroundTruth.csv
     
-2. For training, run: ``python train.py -net sam -mod sam_adpt -exp_name *msa_test_isic* -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 32 -dataset isic --data_path *../data*``
-
+Begin Adapting! run: ``python train.py -net sam -mod sam_adpt -exp_name *msa_test_isic* -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 32 -dataset isic --data_path *../data*``
 change "data_path" and "exp_name" for your own useage. 
 
-The code can automatically evaluate the model on the test set during traing, set "--val_freq" to control how many epoches you want to evaluate once.
-    
-You can also set "--vis" parameter to visualize the results.
+Evaluation and Visualization:
+The code can automatically evaluate the model on the test set during traing, set "--val_freq" to control how many epoches you want to evaluate once. You can also set "--vis" parameter to visualize the results.
 
 In default, everything will be saved at `` ./logs/`` 
 

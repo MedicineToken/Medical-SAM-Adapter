@@ -7,7 +7,6 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 ## A Quick Overview 
 
 <img width="880" height="380" src="https://github.com/WuJunde/Medical-SAM-Adapter/blob/main/figs/medsamadpt.jpeg">
-| Medical-SAM-Adapted |
 
 ## News
 - 23-05-10. This project is still quickly updating 🌝. Check TODO list to see what will be released next.

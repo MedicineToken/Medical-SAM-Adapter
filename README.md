@@ -21,7 +21,7 @@ Download [SAM checkpoint](https://dl.fbaipublicfiles.com/segment_anything/sam_vi
 ## Example Cases
 ### Melanoma Segmentation from Skin Images (2D)
 
-1. Download ISIC dataset part 1 from https://challenge.isic-archive.com/data/. Your dataset folder under "your_data_path" should be like:
+1. Download ISIC dataset part 1 from https://challenge.isic-archive.com/data/. Then put the csv files in "./data/isic" under your data path. Your dataset folder under "your_data_path" should be like:
 
 ISIC/
 

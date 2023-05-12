@@ -21,17 +21,17 @@ Download [SAM checkpoint](https://dl.fbaipublicfiles.com/segment_anything/sam_vi
 ## Example Cases
 ### Melanoma Segmentation from Skin Images (2D)
 
-1. Download ISIC dataset from https://challenge.isic-archive.com/data/. Your dataset folder under "your_data_path" should be like:
+1. Download ISIC dataset part 1 from https://challenge.isic-archive.com/data/. Your dataset folder under "your_data_path" should be like:
 
 ISIC/
 
-     ISBI2016_ISIC_Part3B_Test_Data/...
+     ISBI2016_ISIC_Part1_Test_Data/...
      
-     ISBI2016_ISIC_Part3B_Training_Data/...
+     ISBI2016_ISIC_Part1_Training_Data/...
      
-     ISBI2016_ISIC_Part3B_Test_GroundTruth.csv
+     ISBI2016_ISIC_Part1_Test_GroundTruth.csv
      
-     ISBI2016_ISIC_Part3B_Training_GroundTruth.csv
+     ISBI2016_ISIC_Part1_Training_GroundTruth.csv
     
 2. Begin Adapting! run: ``python train.py -net sam -mod sam_adpt -exp_name *msa_test_isic* -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 32 -dataset isic --data_path *../data*``
 change "data_path" and "exp_name" for your own useage. 

@@ -173,6 +173,7 @@ dependencies:
   - zlib=1.2.13=h5eee18b_0
   - zstd=1.5.5=hc292b87_0
   - pip:
+    - --extra-index-url https://download.pytorch.org/whl/cu113
     - aiosignal==1.2.0
     - alembic==1.10.4
     - appdirs==1.4.4

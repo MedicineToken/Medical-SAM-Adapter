@@ -14,9 +14,17 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 
 ## Requirement
 
-``conda env create -f environment.yml``
+Install the environment:
 
-Download [SAM checkpoint](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth), and put it at ./checkpoint/sam/
+``conda env create -f environment.yml``
+``conda activate sam_adapt``
+
+Then download [SAM checkpoint](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth), and put it at ./checkpoint/sam/
+
+You can run:
+``wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth``
+``mv sam_vit_b_01ec64.pth ./checkpoint/sam``
+creat the folder if it does not exist
 
 ## Example Cases
 ### Melanoma Segmentation from Skin Images (2D)

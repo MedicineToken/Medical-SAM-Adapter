@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
-import torchvision.transforms.functional as F
+import torch.nn.functional as F
 import torchvision.transforms as transforms
 import pandas as pd
 from skimage.transform import rotate
@@ -154,9 +154,11 @@ class REFUGE(Dataset):
             'multi_rater_disc': multi_rater_disc,
             'mask_cup': mask_cup,
             'mask_disc': mask_disc,
+            'label': mask_disc,
             'p_label':point_label,
             'pt_cup':pt_cup,
             'pt_disc':pt_disc,
+            'pt':pt_disc,
             'selected_rater': torch.tensor(np.arange(7)),
             'image_meta_dict':image_meta_dict,
         }

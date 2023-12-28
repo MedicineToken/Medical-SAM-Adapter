@@ -153,7 +153,14 @@ Welcome to open issues if you meet any problem. It would be appreciated if you c
 - [ ] Release SSL code
 
 ## Cite
-comment out temporarily as the paper is under review
+~~~
+@article{wu2023medical,
+  title={Medical sam adapter: Adapting segment anything model for medical image segmentation},
+  author={Wu, Junde and Fu, Rao and Fang, Huihui and Liu, Yuanpei and Wang, Zhaowei and Xu, Yanwu and Jin, Yueming and Arbel, Tal},
+  journal={arXiv preprint arXiv:2304.12620},
+  year={2023}
+}
+~~~
 
 
 

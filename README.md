@@ -140,7 +140,7 @@ Welcome to open issues if you meet any problem. It would be appreciated if you c
 
 ### TODO LIST
 
-- [ ] Jupyter tutorials.
+- [x] Jupyter tutorials.
 - [x] Fix bugs in BTCV. Add BTCV example.
 - [ ] Release REFUGE2, BraTs dataloaders and examples
 - [ ] Changable Image Resolution 

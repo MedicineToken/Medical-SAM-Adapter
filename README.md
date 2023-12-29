@@ -9,6 +9,7 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 <img width="880" height="380" src="https://github.com/WuJunde/Medical-SAM-Adapter/blob/main/figs/medsamadpt.jpeg">
 
 ## News
+- [TOP] Join in our [Discord](https://discord.gg/EqbgSPEX) to ask questions and discuss with others.
 - 23-05-10. This project is still quickly updating 🌝. Check TODO list to see what will be released next.
 - 23-05-11. GitHub Dicussion opened. You guys can now talk, code and make friends on the playground 👨‍❤️‍👨. 
 - 23-12-22. Released data loader and example case on [REFUGE](https://refuge.grand-challenge.org/) dataset.

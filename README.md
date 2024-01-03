@@ -13,6 +13,7 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 - 23-05-10. This project is still quickly updating 🌝. Check TODO list to see what will be released next.
 - 23-05-11. GitHub Dicussion opened. You guys can now talk, code and make friends on the playground 👨‍❤️‍👨. 
 - 23-12-22. Released data loader and example case on [REFUGE](https://refuge.grand-challenge.org/) dataset.
+- 24-01-03. Update a new version on arxiv with more methodology details and experimental results
 
 ## Requirement
 

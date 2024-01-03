@@ -2,16 +2,16 @@ import argparse
 
 def parse_args():    
     parser = argparse.ArgumentParser()
-    parser.add_argument('-net', type=str, required=True, help='net type')
+    parser.add_argument('-net', type=str, default='sam', help='net type')
     parser.add_argument('-baseline', type=str, default='unet', help='baseline net type')
     parser.add_argument('-seg_net', type=str, default='transunet', help='net type')
-    parser.add_argument('-mod', type=str, required=True, help='mod type:seg,cls,val_ad')
-    parser.add_argument('-exp_name', type=str, required=True, help='net type')
+    parser.add_argument('-mod', type=str, default='sam_adpt', help='mod type:seg,cls,val_ad')
+    parser.add_argument('-exp_name', default='msa_test_isic', type=str, help='net type')
     parser.add_argument('-type', type=str, default='map', help='condition type:ave,rand,rand_map')
     parser.add_argument('-vis', type=int, default=None, help='visualization')
     parser.add_argument('-reverse', type=bool, default=False, help='adversary reverse')
     parser.add_argument('-pretrain', type=bool, default=False, help='adversary reverse')
-    parser.add_argument('-val_freq',type=int,default=100,help='interval between each validation')
+    parser.add_argument('-val_freq',type=int,default=5,help='interval between each validation')
     parser.add_argument('-gpu', type=bool, default=True, help='use gpu or not')
     parser.add_argument('-gpu_device', type=int, default=0, help='use which gpu')
     parser.add_argument('-sim_gpu', type=int, default=0, help='split sim to this gpu')
@@ -24,7 +24,7 @@ def parse_args():
     parser.add_argument('-heads', type=int, default=16, help='heads number')
     parser.add_argument('-mlp_dim', type=int, default=1024, help='mlp_dim')
     parser.add_argument('-w', type=int, default=4, help='number of workers for dataloader')
-    parser.add_argument('-b', type=int, default=8, help='batch size for dataloader')
+    parser.add_argument('-b', type=int, default=2, help='batch size for dataloader')
     parser.add_argument('-s', type=bool, default=True, help='whether shuffle the dataset')
     parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
     parser.add_argument('-lr', type=float, default=1e-4, help='initial learning rate')
@@ -51,3 +51,5 @@ def parse_args():
     opt = parser.parse_args()
 
     return opt
+
+# required=True, 

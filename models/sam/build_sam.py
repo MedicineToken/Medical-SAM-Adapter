@@ -13,9 +13,8 @@ from .modeling import (
     MaskDecoder,
     PromptEncoder,
     Sam,
-    TwoWayTransformer,
 )
-
+from ..common import TwoWayTransformer
 
 def build_sam_vit_h(args = None, checkpoint=None):
     return _build_sam(

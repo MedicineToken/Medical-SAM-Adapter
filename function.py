@@ -133,26 +133,49 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
             imgs = imgs.to(dtype = mask_type,device = GPUdevice)
             
             '''Train'''
-            for n, value in net.image_encoder.named_parameters():
-                if "Adapter" not in n:
-                    value.requires_grad = False
+            if args.net == 'sam' or args.net == 'efficient_sam':
+                for n, value in net.image_encoder.named_parameters():
+                    if "Adapter" not in n:
+                        value.requires_grad = False
+
             imge= net.image_encoder(imgs)
 
             with torch.no_grad():
-                # imge= net.image_encoder(imgs)
-                se, de = net.prompt_encoder(
-                    points=pt,
-                    boxes=None,
-                    masks=None,
+                if args.net == 'sam':
+                    se, de = net.prompt_encoder(
+                        points=pt,
+                        boxes=None,
+                        masks=None,
+                    )
+                elif args.net == "efficient_sam":
+                    coords_torch,labels_torch = transform_prompt(coords_torch,labels_torch,h,w)
+                    se = net.prompt_encoder(
+                        coords=coords_torch,
+                        labels=labels_torch,
+                    )
+                    
+            if args.net == 'sam':
+                pred, _ = net.mask_decoder(
+                    image_embeddings=imge,
+                    image_pe=net.prompt_encoder.get_dense_pe(), 
+                    sparse_prompt_embeddings=se,
+                    dense_prompt_embeddings=de, 
+                    multimask_output=False,
                 )
-            pred, _ = net.mask_decoder(
-                image_embeddings=imge,
-                image_pe=net.prompt_encoder.get_dense_pe(), 
-                sparse_prompt_embeddings=se,
-                dense_prompt_embeddings=de, 
-                multimask_output=False,
-              )
-
+            elif args.net == "efficient_sam":
+                se = se.view(
+                    se.shape[0],
+                    1,
+                    se.shape[1],
+                    se.shape[2],
+                )
+                pred, _ = net.mask_decoder(
+                    image_embeddings=imge,
+                    image_pe=net.prompt_encoder.get_dense_pe(), 
+                    sparse_prompt_embeddings=se,
+                    multimask_output=False,
+                )
+       
             loss = lossfunc(pred, masks)
 
             pbar.set_postfix(**{'loss (batch)': loss.item()})
@@ -258,19 +281,40 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                 with torch.no_grad():
                     imge= net.image_encoder(imgs)
 
-                    se, de = net.prompt_encoder(
-                        points=pt,
-                        boxes=None,
-                        masks=None,
-                    )
+                    if args.net == 'sam':
+                        se, de = net.prompt_encoder(
+                            points=pt,
+                            boxes=None,
+                            masks=None,
+                        )
+                    elif args.net == "efficient_sam":
+                        coords_torch,labels_torch = transform_prompt(coords_torch,labels_torch,h,w)
+                        se = net.prompt_encoder(
+                            coords=coords_torch,
+                            labels=labels_torch,
+                        )
 
-                    pred, _ = net.mask_decoder(
-                        image_embeddings=imge,
-                        image_pe=net.prompt_encoder.get_dense_pe(),
-                        sparse_prompt_embeddings=se,
-                        dense_prompt_embeddings=de, 
-                        multimask_output=False,
-                    )
+                    if args.net == 'sam':
+                        pred, _ = net.mask_decoder(
+                            image_embeddings=imge,
+                            image_pe=net.prompt_encoder.get_dense_pe(), 
+                            sparse_prompt_embeddings=se,
+                            dense_prompt_embeddings=de, 
+                            multimask_output=False,
+                        )
+                    elif args.net == "efficient_sam":
+                        se = se.view(
+                            se.shape[0],
+                            1,
+                            se.shape[1],
+                            se.shape[2],
+                        )
+                        pred, _ = net.mask_decoder(
+                            image_embeddings=imge,
+                            image_pe=net.prompt_encoder.get_dense_pe(), 
+                            sparse_prompt_embeddings=se,
+                            multimask_output=False,
+                        )
                 
                     tot += lossfunc(pred, masks)
 
@@ -292,3 +336,61 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
         n_val = n_val * (imgsw.size(-1) // evl_ch)
 
     return tot/ n_val , tuple([a/n_val for a in mix_res])
+
+def transform_prompt(coord,label,h,w):
+    coord = coord.transpose(0,1)
+    label = label.transpose(0,1)
+
+    coord = coord.unsqueeze(1)
+    label = label.unsqueeze(1)
+
+    batch_size, max_num_queries, num_pts, _ = coord.shape
+    num_pts = coord.shape[2]
+    rescaled_batched_points = get_rescaled_pts(coord, h, w)
+
+    decoder_max_num_input_points = 6
+    if num_pts > decoder_max_num_input_points:
+        rescaled_batched_points = rescaled_batched_points[
+            :, :, : decoder_max_num_input_points, :
+        ]
+        label = label[
+            :, :, : decoder_max_num_input_points
+        ]
+    elif num_pts < decoder_max_num_input_points:
+        rescaled_batched_points = F.pad(
+            rescaled_batched_points,
+            (0, 0, 0, decoder_max_num_input_points - num_pts),
+            value=-1.0,
+        )
+        label = F.pad(
+            label,
+            (0, decoder_max_num_input_points - num_pts),
+            value=-1.0,
+        )
+    
+    rescaled_batched_points = rescaled_batched_points.reshape(
+        batch_size * max_num_queries, decoder_max_num_input_points, 2
+    )
+    label = label.reshape(
+        batch_size * max_num_queries, decoder_max_num_input_points
+    )
+
+    return rescaled_batched_points,label
+
+
+def get_rescaled_pts(batched_points: torch.Tensor, input_h: int, input_w: int):
+        return torch.stack(
+            [
+                torch.where(
+                    batched_points[..., 0] >= 0,
+                    batched_points[..., 0] * 1024 / input_w,
+                    -1.0,
+                ),
+                torch.where(
+                    batched_points[..., 1] >= 0,
+                    batched_points[..., 1] * 1024 / input_h,
+                    -1.0,
+                ),
+            ],
+            dim=-1,
+        )

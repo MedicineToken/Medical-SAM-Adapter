@@ -9,7 +9,6 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 <img width="880" height="380" src="https://github.com/WuJunde/Medical-SAM-Adapter/blob/main/figs/medsamadpt.jpeg">
 
 ## News
-- [TOP] Join in our [Discord](https://discord.gg/EqbgSPEX) to ask questions and discuss with others.
 - 23-05-10. This project is still quickly updating 🌝. Check TODO list to see what will be released next.
 - 23-05-11. GitHub Dicussion opened. You guys can now talk, code and make friends on the playground 👨‍❤️‍👨. 
 - 23-12-22. Released data loader and example case on [REFUGE](https://refuge.grand-challenge.org/) dataset.
@@ -20,20 +19,16 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 Install the environment:
 
 ``conda env create -f environment.yml``
-
 ``conda activate sam_adapt``
 
 Then download [SAM checkpoint](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth), and put it at ./checkpoint/sam/
 
 You can run:
-
 ``wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth``
-
 ``mv sam_vit_b_01ec64.pth ./checkpoint/sam``
 creat the folder if it does not exist
 
 ## Example Cases
-
 ### Melanoma Segmentation from Skin Images (2D)
 
 1. Download ISIC dataset part 1 from https://challenge.isic-archive.com/data/. Then put the csv files in "./data/isic" under your data path. Your dataset folder under "your_data_path" should be like:
@@ -49,35 +44,13 @@ ISIC/
      ISBI2016_ISIC_Part1_Training_GroundTruth.csv
     
 2. Begin Adapting! run: ``python train.py -net sam -mod sam_adpt -exp_name *msa_test_isic* -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 32 -dataset isic -data_path *../data*``
-change "data_path" and "exp_name" for your own useage. you can change "exp_name" to anything you want.
-
-You can descrease the ``image size`` or batch size ``b`` if out of memory.
+change "data_path" and "exp_name" for your own useage. 
 
 3. Evaluation: The code can automatically evaluate the model on the test set during traing, set "--val_freq" to control how many epoches you want to evaluate once. You can also run val.py for the independent evaluation.
 
 4. Result Visualization: You can set "--vis" parameter to control how many epoches you want to see the results in the training or evaluation process.
 
 In default, everything will be saved at `` ./logs/`` 
-
-### REFUGE: Optic-disc Segmentation from Fundus Images (2D) 
-[REFUGE](https://refuge.grand-challenge.org/) dataset contains 1200 fundus images with optic disc/cup segmentations and clinical glaucoma labels. 
-
-1. Dowaload the dataset manually from [here](https://huggingface.co/datasets/realslimman/REFUGE-MultiRater/tree/main), or using command lines:
-
-``git lfs install``
-
-``git clone git@hf.co:datasets/realslimman/REFUGE-MultiRater``
-
-unzip and put the dataset to the target folder
-
-``unzip ./REFUGE-MultiRater.zip``
-
-``mv REFUGE-MultiRater ./data``
-
-2. For training the adapter, run: ``python train.py -net sam -mod sam_adpt -exp_name REFUGE-MSAdapt -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 32 -dataset REFUGE -data_path ./data/REFUGE-MultiRater``
-you can change "exp_name" to anything you want.
-
-You can descrease the ``image size`` or batch size ``b`` if out of memory.
 
 ### Abdominal Multiple Organs Segmentation (3D)
 
@@ -142,7 +115,7 @@ Welcome to open issues if you meet any problem. It would be appreciated if you c
 
 ### TODO LIST
 
-- [x] Jupyter tutorials.
+- [ ] Jupyter tutorials.
 - [x] Fix bugs in BTCV. Add BTCV example.
 - [ ] Release REFUGE2, BraTs dataloaders and examples
 - [ ] Changable Image Resolution 
@@ -155,14 +128,7 @@ Welcome to open issues if you meet any problem. It would be appreciated if you c
 - [ ] Release SSL code
 
 ## Cite
-~~~
-@article{wu2023medical,
-  title={Medical sam adapter: Adapting segment anything model for medical image segmentation},
-  author={Wu, Junde and Fu, Rao and Fang, Huihui and Liu, Yuanpei and Wang, Zhaowei and Xu, Yanwu and Jin, Yueming and Arbel, Tal},
-  journal={arXiv preprint arXiv:2304.12620},
-  year={2023}
-}
-~~~
+comment out temporarily as the paper is under review
 
 
 

@@ -117,8 +117,12 @@ def get_network(args, net, use_gpu=True, gpu_device = 0, distribution = True):
     if net == 'sam':
         from models.sam import SamPredictor, sam_model_registry
         from models.sam.utils.transforms import ResizeLongestSide
-
         net = sam_model_registry['vit_b'](args,checkpoint=args.sam_ckpt).to(device)
+
+    elif net == 'efficient_sam':
+        from models.efficient_sam import build_efficient_sam
+        net = build_efficient_sam.build_efficient_sam_vits(checkpoint=args.sam_ckpt)
+
     else:
         print('the network name you have entered is not supported yet')
         sys.exit()

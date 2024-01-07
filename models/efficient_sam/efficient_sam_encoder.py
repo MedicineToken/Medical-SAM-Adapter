@@ -10,8 +10,10 @@ from typing import List, Optional, Tuple, Type
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from ..common import LayerNorm2d
 from .adapter_block import AdapterBlock
+
 
 class PatchEmbed(nn.Module):
     """2D Image to Patch Embedding"""
@@ -202,6 +204,7 @@ class ImageEncoderViT(nn.Module):
         num_positions = num_patches + 1
         self.pos_embed = nn.Parameter(torch.zeros(1, num_positions, patch_embed_dim))
         self.blocks = nn.ModuleList()
+
         for i in range(depth):
             # vit_block = Block(patch_embed_dim, num_heads, mlp_ratio, True)
             vit_block = AdapterBlock(

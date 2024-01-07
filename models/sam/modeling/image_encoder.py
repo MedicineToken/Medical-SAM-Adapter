@@ -4,15 +4,16 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
+from typing import Optional, Tuple, Type
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
-import math
 
-from typing import Optional, Tuple, Type
+from ...common import Adapter, LayerNorm2d
 
-from ...common import LayerNorm2d,Adapter
 
 # This class and its supporting functions below lightly adapted from the ViTDet backbone available at: https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py # noqa
 class ImageEncoderViT(nn.Module):
@@ -70,7 +71,7 @@ class ImageEncoderViT(nn.Module):
         if use_abs_pos:
             # Initialize absolute positional embedding with pretrain image size.
             self.pos_embed = nn.Parameter(
-                torch.zeros(1, img_size // patch_size, img_size // patch_size, embed_dim)
+                torch.zeros(1, 1024 // patch_size, 1024 // patch_size, embed_dim)
             )
 
         self.blocks = nn.ModuleList()
@@ -109,9 +110,17 @@ class ImageEncoderViT(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        
         x = self.patch_embed(x)
         if self.pos_embed is not None:
-            x = x + self.pos_embed
+            # resize position embedding to match the input
+            new_abs_pos = F.interpolate(
+                self.pos_embed.permute(0, 3, 1, 2),
+                size=(x.shape[1], x.shape[2]),
+                mode="bicubic",
+                align_corners=False,
+            ).permute(0, 2, 3, 1)
+            x = x + new_abs_pos
 
         for blk in self.blocks:
             x = blk(x)

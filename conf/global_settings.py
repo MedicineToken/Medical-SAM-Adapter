@@ -25,7 +25,7 @@ MASK_TRAIN_STD = (21.46473779720519/255)
 CHECKPOINT_PATH = 'checkpoint'
 
 #total training epoches
-EPOCH = 50
+EPOCH = 100 
 step_size = 10
 i = 1
 MILESTONES = []

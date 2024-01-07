@@ -1,20 +1,17 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 
+import urllib.request
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 from functools import partial
 from pathlib import Path
-import urllib.request
+
 import torch
 
-from .modeling import (
-    ImageEncoderViT,
-    MaskDecoder,
-    PromptEncoder,
-    Sam,
-)
 from ..common import TwoWayTransformer
+from .modeling import ImageEncoderViT, MaskDecoder, PromptEncoder, Sam
+
 
 def build_sam_vit_h(args = None, checkpoint=None):
     return _build_sam(
@@ -69,7 +66,7 @@ def _build_sam(
     checkpoint=None,
 ):
     prompt_embed_dim = 256
-    image_size = 1024
+    image_size = args.image_size
     vit_patch_size = 16
     image_embedding_size = image_size // vit_patch_size
     sam = Sam(
@@ -84,7 +81,8 @@ def _build_sam(
             num_heads=encoder_num_heads,
             patch_size=vit_patch_size,
             qkv_bias=True,
-            use_rel_pos=True,
+            # use_rel_pos=True,
+            use_rel_pos=False,
             global_attn_indexes=encoder_global_attn_indexes,
             window_size=14,
             out_chans=prompt_embed_dim,

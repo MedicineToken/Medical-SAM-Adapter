@@ -3,27 +3,11 @@ from torch import nn
 from torch.nn import functional as F
 
 __version__ = "0.5.1"
-from .utils import (
-    GlobalParams,
-    BlockArgs,
-    BlockDecoder,
-    efficientnet,
-    get_model_params,
-)
-
-
-from .utils import (
-    round_filters,
-    round_repeats,
-    drop_connect,
-    get_same_padding_conv2d,
-    get_model_params,
-    efficientnet_params,
-    load_pretrained_weights,
-    Swish,
-    MemoryEfficientSwish,
-    gram_matrix,
-)
+from .utils import (BlockArgs, BlockDecoder, GlobalParams,
+                    MemoryEfficientSwish, Swish, drop_connect, efficientnet,
+                    efficientnet_params, get_model_params,
+                    get_same_padding_conv2d, gram_matrix,
+                    load_pretrained_weights, round_filters, round_repeats)
 
 
 class MBConvBlock(nn.Module):

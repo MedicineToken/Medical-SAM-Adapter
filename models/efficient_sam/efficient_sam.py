@@ -9,12 +9,12 @@ from typing import Any, List, Tuple, Type
 
 import torch
 import torch.nn.functional as F
+from torch import Tensor, nn
 
-from torch import nn, Tensor
-
+from ..common import TwoWayTransformer
 from .efficient_sam_decoder import MaskDecoder, PromptEncoder
 from .efficient_sam_encoder import ImageEncoderViT
-from ..common import TwoWayTransformer
+
 
 class EfficientSam(nn.Module):
     mask_threshold: float = 0.0
@@ -229,8 +229,8 @@ class EfficientSam(nn.Module):
         return (x - self.pixel_mean) / self.pixel_std
 
 
-def build_efficient_sam(encoder_patch_embed_dim, encoder_num_heads, checkpoint=None):
-    img_size = 1024
+def build_efficient_sam(img_size, encoder_patch_embed_dim, encoder_num_heads, checkpoint=None):
+    img_size = img_size
     encoder_patch_size = 16
     encoder_depth = 12
     encoder_mlp_ratio = 4.0

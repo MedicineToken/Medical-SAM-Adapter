@@ -121,7 +121,7 @@ def get_network(args, net, use_gpu=True, gpu_device = 0, distribution = True):
 
     elif net == 'efficient_sam':
         from models.efficient_sam import build_efficient_sam
-        net = build_efficient_sam.build_efficient_sam_vits(checkpoint=args.sam_ckpt)
+        net = build_efficient_sam.build_efficient_sam_vits(args)
 
     else:
         print('the network name you have entered is not supported yet')

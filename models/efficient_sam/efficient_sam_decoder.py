@@ -13,6 +13,7 @@ import torch.nn.functional as F
 
 from ..common import MLPBlock
 
+
 class PromptEncoder(nn.Module):
     def __init__(
         self,

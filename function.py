@@ -169,13 +169,17 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                     se.shape[1],
                     se.shape[2],
                 )
+
                 pred, _ = net.mask_decoder(
                     image_embeddings=imge,
                     image_pe=net.prompt_encoder.get_dense_pe(), 
                     sparse_prompt_embeddings=se,
                     multimask_output=False,
                 )
-       
+                
+            # Resize to the ordered output size
+            pred = F.interpolate(pred,size=(args.out_size,args.out_size))
+
             loss = lossfunc(pred, masks)
 
             pbar.set_postfix(**{'loss (batch)': loss.item()})
@@ -315,7 +319,9 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                             sparse_prompt_embeddings=se,
                             multimask_output=False,
                         )
-                
+
+                    # Resize to the ordered output size
+                    pred = F.interpolate(pred,size=(args.out_size,args.out_size))
                     tot += lossfunc(pred, masks)
 
                     '''vis images'''

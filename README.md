@@ -10,6 +10,7 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
  - 23-05-11. GitHub Dicussion opened. You guys can now talk, code and make friends on the playground 👨‍❤️‍👨. 
  - 23-12-22. Released data loader and example case on [REFUGE](https://refuge.grand-challenge.org/) dataset.
  - 24-01-04. Released the Efficient Med-SAM-Adapter❗️ A new, faster, and more lightweight version incorporates Meta [EfficientSAM](https://yformer.github.io/efficient-sam/)🏇. Full credit goes to @shinning0821
+ - 24-01-07. The image resolution now can be resized by ``-image_size``. Credit: @shinning0821
 
  ## Requirement
 

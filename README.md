@@ -118,17 +118,18 @@ Welcome to open issues if you meet any problem. It would be appreciated if you c
 
  ### TODO LIST
 
- - [x] Jupyter tutorials.
- - [x] Fix bugs in BTCV. Add BTCV example.
- - [ ] Release REFUGE2, BraTs dataloaders and examples
- - [ ] Changable Image Resolution 
+- [ ] Jupyter tutorials.
+- [x] Fix bugs in BTCV. Add BTCV example.
+- [ ] Release REFUGE2, BraTs dataloaders and examples
+- [x] Changable Image Resolution 
 - [ ] Fix bugs in Multi-GPU parallel
 - [x] Sample and Vis in training
 - [ ] Release general data pre-processing and post-processing
 - [x] Release evaluation
 - [ ] Deploy on HuggingFace
 - [x] configuration
- - [ ] Release SSL code
+- [ ] Release SSL code
+- [ ] Release Medical Adapter Zoo
 
  ## Cite
  ~~~

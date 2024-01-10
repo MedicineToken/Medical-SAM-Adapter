@@ -3,10 +3,11 @@ Medical SAM Adapter, or say MSA, is a project to fineturn [SAM](https://github.c
 This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment Anything Model for Medical Image Segmentation](https://arxiv.org/abs/2304.12620).
 ## A Quick Overview 
  <img width="880" height="380" src="https://github.com/WuJunde/Medical-SAM-Adapter/blob/main/figs/medsamadpt.jpeg">
+
  ### Performance
  **Settings:**  3090Ti，batch size=2
  #### ISIC
-| Backbone                                          | IOU    | DICE   | Speed      | Memory  |
+| Method                                          | IOU    | DICE   | Speed      | Memory  |
 | ------------------------------------------------- | ------ | ------ | ---------- | ------- |
 | **SAM**（resolution=1024）                        | 0.8646 | 0.9225 | 1.86 img/s | 22427 M |
 | **EfficientSAM**（resolution=1024）               | 0.8463 | 0.9091 | 2.74 img/s | 21225 M |
@@ -14,7 +15,7 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 | **EfficientSAM**（resolution=512）                | 0.8495 | 0.9134 | 8.88 img/s | 5671 M  |
 
 #### REFUGE
-| Backbone                            | IOU    | DICE   | Speed      | Memory  |
+| Method                            | IOU    | DICE   | Speed      | Memory  |
 | ----------------------------------- | ------ | ------ | ---------- | ------- |
 | **SAM**（resolution=1024）          | 0.8423 | 0.9085 | 1.73 img/s | 22427 M |
 | **EfficientSAM**（resolution=1024） | 0.7915 | 0.8691 | 2.42 img/s | 21225 M |

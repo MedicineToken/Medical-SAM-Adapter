@@ -229,8 +229,8 @@ class EfficientSam(nn.Module):
         return (x - self.pixel_mean) / self.pixel_std
 
 
-def build_efficient_sam(img_size, encoder_patch_embed_dim, encoder_num_heads, checkpoint=None):
-    img_size = img_size
+def build_efficient_sam(args, encoder_patch_embed_dim, encoder_num_heads, checkpoint=None):
+    img_size = args.image_size
     encoder_patch_size = 16
     encoder_depth = 12
     encoder_mlp_ratio = 4.0
@@ -254,6 +254,7 @@ def build_efficient_sam(img_size, encoder_patch_embed_dim, encoder_num_heads, ch
         activation_fn = nn.GELU
 
     image_encoder = ImageEncoderViT(
+        args= args,
         img_size=img_size,
         patch_size=encoder_patch_size,
         in_chans=3,

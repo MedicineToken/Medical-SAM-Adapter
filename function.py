@@ -1,54 +1,44 @@
 
-import os
-import sys
 import argparse
-from datetime import datetime
+import os
+import shutil
+import sys
+import tempfile
+import time
 from collections import OrderedDict
+from datetime import datetime
+
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
-from sklearn.metrics import roc_auc_score, accuracy_score,confusion_matrix
 import torchvision
 import torchvision.transforms as transforms
+from einops import rearrange
+from monai.inferers import sliding_window_inference
+from monai.losses import DiceCELoss
+from monai.transforms import AsDiscrete
+from PIL import Image
 from skimage import io
-from torch.utils.data import DataLoader
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
+from tensorboardX import SummaryWriter
 #from dataset import *
 from torch.autograd import Variable
-from PIL import Image
-from tensorboardX import SummaryWriter
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
+import cfg
+import models.sam.utils.transforms as samtrans
+import pytorch_ssim
 #from models.discriminatorlayer import discriminator
 from conf import settings
-import time
-import cfg
-from conf import settings
-from tqdm import tqdm
 from utils import *
-import torch.nn.functional as F
-import torch
-from einops import rearrange
-import pytorch_ssim
-import models.sam.utils.transforms as samtrans
 
 # from lucent.modelzoo.util import get_model_layers
 # from lucent.optvis import render, param, transform, objectives
 # from lucent.modelzoo import inceptionv1
-
-import shutil
-import tempfile
-
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-
-from monai.losses import DiceCELoss
-from monai.inferers import sliding_window_inference
-from monai.transforms import (
-    AsDiscrete,
-)
-
-
-import torch
-
 
 args = cfg.parse_args()
 
@@ -80,7 +70,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
 
     epoch_loss = 0
     GPUdevice = torch.device('cuda:' + str(args.gpu_device))
-    device = GPUdevice
 
     if args.thd:
         lossfunc = DiceCELoss(sigmoid=True, squared_pred=True, reduction='mean')
@@ -89,6 +78,8 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
 
     with tqdm(total=len(train_loader), desc=f'Epoch {epoch}', unit='img') as pbar:
         for pack in train_loader:
+            # torch.cuda.empty_cache()
+
             imgs = pack['image'].to(dtype = torch.float32, device = GPUdevice)
             masks = pack['label'].to(dtype = torch.float32, device = GPUdevice)
             # for k,v in pack['image_meta_dict'].items():
@@ -130,16 +121,17 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
             if hard:
                 true_mask_ave = (true_mask_ave > 0.5).float()
                 #true_mask_ave = cons_tensor(true_mask_ave)
-            imgs = imgs.to(dtype = mask_type,device = GPUdevice)
+            # imgs = imgs.to(dtype = mask_type,device = GPUdevice)
             
             '''Train'''
             if args.net == 'sam' or args.net == 'efficient_sam':
-                for n, value in net.image_encoder.named_parameters():
+                for n, value in net.image_encoder.named_parameters(): 
                     if "Adapter" not in n:
                         value.requires_grad = False
-
+                    else:
+                        value.requires_grad = True
             imge= net.image_encoder(imgs)
-
+            
             with torch.no_grad():
                 if args.net == 'sam':
                     se, de = net.prompt_encoder(
@@ -162,6 +154,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                     dense_prompt_embeddings=de, 
                     multimask_output=False,
                 )
+
             elif args.net == "efficient_sam":
                 se = se.view(
                     se.shape[0],
@@ -169,7 +162,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                     se.shape[1],
                     se.shape[2],
                 )
-
                 pred, _ = net.mask_decoder(
                     image_embeddings=imge,
                     image_pe=net.prompt_encoder.get_dense_pe(), 

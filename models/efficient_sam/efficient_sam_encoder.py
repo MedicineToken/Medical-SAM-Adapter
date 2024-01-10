@@ -12,7 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..common import LayerNorm2d
-from .adapter_block import AdapterBlock
+from ..ImageEncoder import AdapterBlock
 
 
 class PatchEmbed(nn.Module):
@@ -167,6 +167,7 @@ def get_abs_pos(
 class ImageEncoderViT(nn.Module):
     def __init__(
         self,
+        args,
         img_size: int,
         patch_size: int,
         in_chans: int,
@@ -191,6 +192,7 @@ class ImageEncoderViT(nn.Module):
         """
         super().__init__()
 
+        self.args = args
         self.img_size = img_size
         self.image_embedding_size = img_size // ((patch_size if patch_size > 0 else 1))
         self.transformer_output_dim = ([patch_embed_dim] + neck_dims)[-1]
@@ -208,6 +210,7 @@ class ImageEncoderViT(nn.Module):
         for i in range(depth):
             # vit_block = Block(patch_embed_dim, num_heads, mlp_ratio, True)
             vit_block = AdapterBlock(
+                args = self.args,
                 dim=patch_embed_dim,
                 num_heads=num_heads,
                 mlp_ratio=mlp_ratio,

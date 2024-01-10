@@ -3,7 +3,6 @@ Medical SAM Adapter, or say MSA, is a project to fineturn [SAM](https://github.c
 This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment Anything Model for Medical Image Segmentation](https://arxiv.org/abs/2304.12620).
 ## A Quick Overview 
  <img width="880" height="380" src="https://github.com/WuJunde/Medical-SAM-Adapter/blob/main/figs/medsamadpt.jpeg">
-
  ### Performance
  **Settings:**  3090Ti，batch size=2
  #### ISIC

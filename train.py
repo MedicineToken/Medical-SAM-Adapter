@@ -132,12 +132,19 @@ checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pth')
 '''begain training'''
 best_acc = 0.0
 best_tol = 1e4
+
+
 for epoch in range(settings.EPOCH):
     if args.mod == 'sam_adpt':
+        
+        if epoch < 5:
+            tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
+            logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
+            
         net.train()
         time_start = time.time()
         loss = function.train_sam(args, net, optimizer, nice_train_loader, epoch, writer, vis = args.vis)
-        logger.info(f'Train loss: {loss}|| @ epoch {epoch}.')
+        logger.info(f'Train loss: {loss} || @ epoch {epoch}.')
         time_end = time.time()
         print('time_for_training ', time_end - time_start)
 

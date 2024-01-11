@@ -12,30 +12,12 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
 ## A Quick Overview 
  <img width="880" height="380" src="https://github.com/WuJunde/Medical-SAM-Adapter/blob/main/figs/medsamadpt.jpeg">
 
- ### Performance
- **Settings:**  3090Ti，batch size=2
- #### ISIC
-| Method                                          | IOU    | DICE   | Speed      | Memory  |
-| ------------------------------------------------- | ------ | ------ | ---------- | ------- |
-| **SAM**（resolution=1024）                        | 0.8646 | 0.9225 | 1.86 img/s | 22427 M |
-| **EfficientSAM**（resolution=1024）               | 0.8463 | 0.9091 | 2.74 img/s | 21225 M |
-| **SAM**（resolution=512）                         | 0.8638 | 0.9219 | 6.92 img/s | 7853 M  |
-| **EfficientSAM**（resolution=512）                | 0.8495 | 0.9134 | 8.88 img/s | 5671 M  |
-
-#### REFUGE
-| Method                            | IOU    | DICE   | Speed      | Memory  |
-| ----------------------------------- | ------ | ------ | ---------- | ------- |
-| **SAM**（resolution=1024）          | 0.8423 | 0.9085 | 1.73 img/s | 22427 M |
-| **EfficientSAM**（resolution=1024） | 0.7915 | 0.8691 | 2.42 img/s | 21225 M |
-| **SAM**（resolution=512）           | 0.8521 | 0.9181 | 6.84 img/s | 7853 M  |
-| **EfficientSAM**（resolution=512）  | 0.7673 | 0.8564 | 8.68 img/s | 5671 M  |
-
  ## News
  - [TOP] Join in our [Discord](https://discord.gg/EqbgSPEX) to ask questions and discuss with others.
  - 23-05-10. This project is still quickly updating 🌝. Check TODO list to see what will be released next.
  - 23-05-11. GitHub Dicussion opened. You guys can now talk, code and make friends on the playground 👨‍❤️‍👨. 
  - 23-12-22. Released data loader and example case on [REFUGE](https://refuge.grand-challenge.org/) dataset. Credit: @jiayuanz3
- - 24-01-04. Released the Efficient Med-SAM-Adapter❗️ A new, faster, and more lightweight version incorporates Meta [EfficientSAM](https://yformer.github.io/efficient-sam/)🏇. Full credit goes to @shinning0821
+ - 24-01-04. Released the Efficient Med-SAM-Adapter❗️ A new, faster, and more lightweight version incorporates Meta [EfficientSAM](https://yformer.github.io/efficient-sam/)🏇. Full credit goes to @shinning0821. Detain information seen in [guidance/efficient_sam.ipynb](./guidance/efficient_sam.ipynb).
  - 24-01-07. The image resolution now can be resized by ``-image_size``. Credit: @shinning0821
 
  ## Requirement

@@ -59,7 +59,6 @@ class ImageEncoderViT(nn.Module):
         """
         super().__init__()
         self.img_size = img_size
-        self.in_chans = in_chans
         self.args = args
 
         self.patch_embed = PatchEmbed(

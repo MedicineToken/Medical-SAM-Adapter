@@ -117,12 +117,27 @@ def get_network(args, net, use_gpu=True, gpu_device = 0, distribution = True):
     if net == 'sam':
         from models.sam import SamPredictor, sam_model_registry
         from models.sam.utils.transforms import ResizeLongestSide
-        net = sam_model_registry['vit_b'](args,checkpoint=args.sam_ckpt).to(device)
+        options = ['default','vit-b','vit-l','vit-h']
+        if args.encoder not in options:
+            raise ValueError("Invalid encoder option. Please choose from: {}".format(options))
+        else:
+            net = sam_model_registry[args.encoder](args,checkpoint=args.sam_ckpt).to(device)
 
     elif net == 'efficient_sam':
-        from models.efficient_sam import build_efficient_sam
-        # net = build_efficient_sam.build_efficient_sam_vits(args)
-        net = build_efficient_sam.build_efficient_sam_vits(args)
+        from models.efficient_sam import sam_model_registry
+        options = ['default','vit-s','vit-t','tiny_vit']
+        if args.encoder not in options:
+            raise ValueError("Invalid encoder option. Please choose from: {}".format(options))
+        else:
+            net = sam_model_registry[args.encoder](args)
+
+    elif net == 'mobile_sam':
+        from models.MobileSAMv2.mobilesamv2 import sam_model_registry
+        options = ['default','vit-h','vit-l','vit-b','tiny_vit','efficientvit_l2','PromptGuidedDecoder','sam_vit_h']
+        if args.encoder not in options:
+            raise ValueError("Invalid encoder option. Please choose from: {}".format(options))
+        else:
+            net = sam_model_registry[args.encoder](args,checkpoint=args.sam_ckpt)
 
     else:
         print('the network name you have entered is not supported yet')

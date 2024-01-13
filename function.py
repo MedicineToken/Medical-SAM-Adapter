@@ -124,7 +124,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
             # imgs = imgs.to(dtype = mask_type,device = GPUdevice)
             
             '''Train'''
-            if args.net == 'sam' or args.net == 'efficient_sam':
+            if args.net == 'sam' or 'efficient_sam' or 'mobile_sam':
                 for n, value in net.image_encoder.named_parameters(): 
                     if "Adapter" not in n:
                         value.requires_grad = False
@@ -133,7 +133,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
             imge= net.image_encoder(imgs)
             
             with torch.no_grad():
-                if args.net == 'sam':
+                if args.net == 'sam' or 'mobile_sam':
                     se, de = net.prompt_encoder(
                         points=pt,
                         boxes=None,
@@ -146,7 +146,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                         labels=labels_torch,
                     )
                     
-            if args.net == 'sam':
+            if args.net == 'sam' or 'mobile_sam':
                 pred, _ = net.mask_decoder(
                     image_embeddings=imge,
                     image_pe=net.prompt_encoder.get_dense_pe(), 
@@ -276,8 +276,7 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                 '''test'''
                 with torch.no_grad():
                     imge= net.image_encoder(imgs)
-
-                    if args.net == 'sam':
+                    if args.net == 'sam' or 'mobile_sam':
                         se, de = net.prompt_encoder(
                             points=pt,
                             boxes=None,
@@ -290,7 +289,7 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                             labels=labels_torch,
                         )
 
-                    if args.net == 'sam':
+                    if args.net == 'sam' or 'mobile_sam':
                         pred, _ = net.mask_decoder(
                             image_embeddings=imge,
                             image_pe=net.prompt_encoder.get_dense_pe(), 

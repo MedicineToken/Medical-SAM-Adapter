@@ -135,42 +135,40 @@ best_tol = 1e4
 
 
 for epoch in range(settings.EPOCH):
-    if args.mod == 'sam_adpt':
+    if epoch and epoch < 5:
+        tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
+        logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
         
-        if epoch < 5:
-            tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
-            logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
-            
-        net.train()
-        time_start = time.time()
-        loss = function.train_sam(args, net, optimizer, nice_train_loader, epoch, writer, vis = args.vis)
-        logger.info(f'Train loss: {loss} || @ epoch {epoch}.')
-        time_end = time.time()
-        print('time_for_training ', time_end - time_start)
+    net.train()
+    time_start = time.time()
+    loss = function.train_sam(args, net, optimizer, nice_train_loader, epoch, writer, vis = args.vis)
+    logger.info(f'Train loss: {loss} || @ epoch {epoch}.')
+    time_end = time.time()
+    print('time_for_training ', time_end - time_start)
 
-        net.eval()
-        if epoch and epoch % args.val_freq == 0 or epoch == settings.EPOCH-1:
-            tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
-            logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
+    net.eval()
+    if epoch and epoch % args.val_freq == 0 or epoch == settings.EPOCH-1:
+        tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
+        logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
 
-            if args.distributed != 'none':
-                sd = net.module.state_dict()
-            else:
-                sd = net.state_dict()
+        if args.distributed != 'none':
+            sd = net.module.state_dict()
+        else:
+            sd = net.state_dict()
 
-            if tol < best_tol:
-                best_tol = tol
-                is_best = True
+        if tol < best_tol:
+            best_tol = tol
+            is_best = True
 
-                save_checkpoint({
-                'epoch': epoch + 1,
-                'model': args.net,
-                'state_dict': sd,
-                'optimizer': optimizer.state_dict(),
-                'best_tol': best_tol,
-                'path_helper': args.path_helper,
-            }, is_best, args.path_helper['ckpt_path'], filename="best_checkpoint")
-            else:
-                is_best = False
+            save_checkpoint({
+            'epoch': epoch + 1,
+            'model': args.net,
+            'state_dict': sd,
+            'optimizer': optimizer.state_dict(),
+            'best_tol': best_tol,
+            'path_helper': args.path_helper,
+        }, is_best, args.path_helper['ckpt_path'], filename="best_checkpoint")
+        else:
+            is_best = False
 
 writer.close()

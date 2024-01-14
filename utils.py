@@ -3,97 +3,63 @@
 author junde
 """
 
-import sys
-
-import numpy
-
-import torch
-import torch.nn as nn
-from torch.autograd import Function
-from torch.optim.lr_scheduler import _LRScheduler
-import torchvision
-import torchvision.transforms as transforms
-import torch.optim as optim
-import torchvision.utils as vutils
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
-from torch import autograd
-import random
-import math
-import PIL
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 import collections
 import logging
 import math
 import os
+import pathlib
+import random
+import shutil
+import sys
+import tempfile
 import time
+import warnings
+from collections import OrderedDict
 from datetime import datetime
+from typing import BinaryIO, List, Optional, Text, Tuple, Union
 
 import dateutil.tz
-
-from typing import Union, Optional, List, Tuple, Text, BinaryIO
-import pathlib
-import warnings
+import matplotlib.pyplot as plt
+import numpy
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageColor
+import PIL
+import seaborn as sns
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
+import torchvision.utils as vutils
+from monai.config import print_config
+from monai.data import (CacheDataset, ThreadDataLoader, decollate_batch,
+                        load_decathlon_datalist, set_track_meta)
+from monai.inferers import sliding_window_inference
+from monai.losses import DiceCELoss
+from monai.metrics import DiceMetric
+from monai.networks.nets import SwinUNETR
+from monai.transforms import (AsDiscrete, Compose, CropForegroundd,
+                              EnsureTyped, LoadImaged, Orientationd,
+                              RandCropByPosNegLabeld, RandFlipd, RandRotate90d,
+                              RandShiftIntensityd, ScaleIntensityRanged,
+                              Spacingd)
+from PIL import Image, ImageColor, ImageDraw, ImageFont
+from torch import autograd
+from torch.autograd import Function, Variable
+from torch.optim.lr_scheduler import _LRScheduler
+from torch.utils.data import DataLoader
 # from lucent.optvis.param.spatial import pixel_image, fft_image, init_image
 # from lucent.optvis.param.color import to_valid_rgb
 # from lucent.optvis import objectives, transform, param
 # from lucent.misc.io import show
 from torchvision.models import vgg19
-import torch.nn.functional as F
-import cfg
-
-import warnings
-from collections import OrderedDict
-import numpy as np
 from tqdm import tqdm
-from PIL import Image
-import torch
 
+import cfg
 # from precpt import run_precpt
 from models.discriminator import Discriminator
+
 # from siren_pytorch import SirenNet, SirenWrapper
-
-import shutil
-import tempfile
-
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-
-from monai.losses import DiceCELoss
-from monai.inferers import sliding_window_inference
-from monai.transforms import (
-    AsDiscrete,
-    Compose,
-    CropForegroundd,
-    LoadImaged,
-    Orientationd,
-    RandFlipd,
-    RandCropByPosNegLabeld,
-    RandShiftIntensityd,
-    ScaleIntensityRanged,
-    Spacingd,
-    RandRotate90d,
-    EnsureTyped,
-)
-
-from monai.config import print_config
-from monai.metrics import DiceMetric
-from monai.networks.nets import SwinUNETR
-
-from monai.data import (
-    ThreadDataLoader,
-    CacheDataset,
-    load_decathlon_datalist,
-    decollate_batch,
-    set_track_meta,
-)
-
-
-
 
 args = cfg.parse_args()
 device = torch.device('cuda', args.gpu_device)
@@ -117,12 +83,27 @@ def get_network(args, net, use_gpu=True, gpu_device = 0, distribution = True):
     if net == 'sam':
         from models.sam import SamPredictor, sam_model_registry
         from models.sam.utils.transforms import ResizeLongestSide
-        net = sam_model_registry['vit_b'](args,checkpoint=args.sam_ckpt).to(device)
+        options = ['default','vit_b','vit_l','vit_h']
+        if args.encoder not in options:
+            raise ValueError("Invalid encoder option. Please choose from: {}".format(options))
+        else:
+            net = sam_model_registry[args.encoder](args,checkpoint=args.sam_ckpt).to(device)
 
     elif net == 'efficient_sam':
-        from models.efficient_sam import build_efficient_sam
-        # net = build_efficient_sam.build_efficient_sam_vits(args)
-        net = build_efficient_sam.build_efficient_sam_vits(args)
+        from models.efficient_sam import sam_model_registry
+        options = ['default','vit_s','vit_t']
+        if args.encoder not in options:
+            raise ValueError("Invalid encoder option. Please choose from: {}".format(options))
+        else:
+            net = sam_model_registry[args.encoder](args)
+
+    elif net == 'mobile_sam':
+        from models.MobileSAMv2.mobilesamv2 import sam_model_registry
+        options = ['default','vit_h','vit_l','vit_b','tiny_vit','efficientvit_l2','PromptGuidedDecoder','sam_vit_h']
+        if args.encoder not in options:
+            raise ValueError("Invalid encoder option. Please choose from: {}".format(options))
+        else:
+            net = sam_model_registry[args.encoder](args,checkpoint=args.sam_ckpt)
 
     else:
         print('the network name you have entered is not supported yet')

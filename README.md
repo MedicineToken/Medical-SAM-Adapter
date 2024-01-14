@@ -20,6 +20,7 @@ This method is elaborated in the paper [Medical SAM Adapter: Adapting Segment An
  - 24-01-04. Released the Efficient Med-SAM-Adapter❗️ A new, faster, and more lightweight version incorporates Meta [EfficientSAM](https://yformer.github.io/efficient-sam/)🏇. Full credit goes to @shinning0821. 
  - 24-01-07. The image resolution now can be resized by ``-image_size``. Credit: @shinning0821
  - 24-01-11. Added a detailed guide on utilizing the Efficient Med-SAM-Adapter, complete with a comparison of performance and speed. You can find this resource in  [guidance/efficient_sam.ipynb](./guidance/efficient_sam.ipynb). Credit: @shinning0821
+ - 24-01-14. We've just launched our first official version, v0.1.0-alpha 🥳. This release includes support for [MobileSAM](https://github.com/ChaoningZhang/MobileSAM), which can be activated by setting ``-net mobile_sam``. Additionally, you now have the flexibility to use ViT, Tiny ViT, and Efficient ViT as encoders. Check the details [here](https://github.com/KidsWithTokens/Medical-SAM-Adapter/releases/tag/v0.1.0-alpha).
 
  ## Requirement
 

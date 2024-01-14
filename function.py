@@ -124,16 +124,20 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
             # imgs = imgs.to(dtype = mask_type,device = GPUdevice)
             
             '''Train'''
-            if args.net == 'sam' or 'efficient_sam' or 'mobile_sam':
+            if args.mod == 'sam_adpt':
                 for n, value in net.image_encoder.named_parameters(): 
                     if "Adapter" not in n:
                         value.requires_grad = False
                     else:
                         value.requires_grad = True
+            else:
+                for n, value in net.image_encoder.named_parameters(): 
+                    value.requires_grad = True
+                    
             imge= net.image_encoder(imgs)
             
             with torch.no_grad():
-                if args.net == 'sam' or 'mobile_sam':
+                if args.net == 'sam' or args.net == 'mobile_sam':
                     se, de = net.prompt_encoder(
                         points=pt,
                         boxes=None,
@@ -146,7 +150,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                         labels=labels_torch,
                     )
                     
-            if args.net == 'sam' or 'mobile_sam':
+            if args.net == 'sam' or args.net == 'mobile_sam':
                 pred, _ = net.mask_decoder(
                     image_embeddings=imge,
                     image_pe=net.prompt_encoder.get_dense_pe(), 
@@ -276,7 +280,7 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                 '''test'''
                 with torch.no_grad():
                     imge= net.image_encoder(imgs)
-                    if args.net == 'sam' or 'mobile_sam':
+                    if args.net == 'sam' or args.net == 'mobile_sam':
                         se, de = net.prompt_encoder(
                             points=pt,
                             boxes=None,
@@ -289,7 +293,7 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                             labels=labels_torch,
                         )
 
-                    if args.net == 'sam' or 'mobile_sam':
+                    if args.net == 'sam' or args.net == 'mobile_sam':
                         pred, _ = net.mask_decoder(
                             image_embeddings=imge,
                             image_pe=net.prompt_encoder.get_dense_pe(), 

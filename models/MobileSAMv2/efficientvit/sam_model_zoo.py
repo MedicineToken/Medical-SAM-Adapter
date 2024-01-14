@@ -1,20 +1,17 @@
 # EfficientViT: Multi-Scale Linear Attention for High-Resolution Dense Prediction
 # Han Cai, Junyan Li, Muyan Hu, Chuang Gan, Song Han
 # International Conference on Computer Vision (ICCV), 2023
+from typing import Dict
 
-from efficientvit.models.efficientvit import (
-    EfficientViTSam,
-    efficientvit_sam_l0,
-    efficientvit_sam_l1,
-    efficientvit_sam_l2,
-)
-from efficientvit.models.nn.norm import set_norm_eps
-from efficientvit.models.utils import load_state_dict_from_file
+from .models.efficientvit import (EfficientViTSam, efficientvit_sam_l0,
+                                  efficientvit_sam_l1, efficientvit_sam_l2)
+from .models.nn.norm import set_norm_eps
+from .models.utils import load_state_dict_from_file
 
 __all__ = ["create_sam_model"]
 
 
-REGISTERED_SAM_MODEL: dict[str, str] = {
+REGISTERED_SAM_MODEL: Dict[str, str] = {
     "l0": "assets/checkpoints/sam/l0.pt",
     "l1": "assets/checkpoints/sam/l1.pt",
     "l2": "assets/checkpoints/sam/l2.pt",

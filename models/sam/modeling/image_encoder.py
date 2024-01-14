@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from einops import rearrange
 
 from ...common import Adapter, LayerNorm2d
-from ...ImageEncoder import AdapterBlock
+from ...ImageEncoder import AdapterBlock, Block
 
 
 # This class and its supporting functions below lightly adapted from the ViTDet backbone available at: https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py # noqa
@@ -76,9 +76,14 @@ class ImageEncoderViT(nn.Module):
             )
 
         self.blocks = nn.ModuleList()
+        if args.mod == 'sam_adpt':
+            block_class = AdapterBlock 
+        else:
+            block_class = Block 
+
         for i in range(depth):
-            block = AdapterBlock(
-                args= self.args,
+            block = block_class(
+                args=self.args,
                 dim=embed_dim,
                 num_heads=num_heads,
                 mlp_ratio=mlp_ratio,
@@ -163,17 +168,3 @@ class PatchEmbed(nn.Module):
         x = x.permute(0, 2, 3, 1)
         return x
 
-class MLPBlock(nn.Module):
-    def __init__(
-        self,
-        embedding_dim: int,
-        mlp_dim: int,
-        act: Type[nn.Module] = nn.GELU,
-    ) -> None:
-        super().__init__()
-        self.lin1 = nn.Linear(embedding_dim, mlp_dim)
-        self.lin2 = nn.Linear(mlp_dim, embedding_dim)
-        self.act = act()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.lin2(self.act(self.lin1(x)))

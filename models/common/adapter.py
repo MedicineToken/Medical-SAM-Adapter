@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class Adapter(nn.Module):
     def __init__(self, D_features, mlp_ratio=0.25, act_layer=nn.GELU, skip_connect=True):
         super().__init__()

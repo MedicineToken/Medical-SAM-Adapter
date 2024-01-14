@@ -9,12 +9,12 @@ from functools import partial
 import torch
 import torch.nn as nn
 
+from ...ImageEncoder import TinyViT
 from ..efficientvit.models.efficientvit.backbone import \
     EfficientViTLargeBackbone
 from ..efficientvit.models.efficientvit.sam import (
     EfficientViTSamImageEncoder, SamNeck)
 from ..efficientvit.models.nn.norm import set_norm_eps
-from ..tinyvit.tiny_vit import TinyViT  # 11000
 from .modeling import (ImageEncoderViT, MaskDecoder, PromptEncoder, Sam,
                        TwoWayTransformer)
 
@@ -135,6 +135,7 @@ def build_sam_vit_t(
     image_embedding_size = image_size // vit_patch_size
     sam = Sam(
         image_encoder=TinyViT(
+                args = args,
                 img_size=image_size, 
                 in_chans=3, 
                 num_classes=1000,
@@ -177,7 +178,7 @@ def build_sam_vit_t(
         sam.load_state_dict(state_dict,strict=False)
     return sam
 
-def build_efficientvit_l2_encoder(checkpoint=None):
+def build_efficientvit_l2_encoder(args,checkpoint=None):
     backbone = EfficientViTLargeBackbone(
                 width_list=[32, 64, 128, 256, 512],
                 depth_list=[1, 2, 2, 8, 8],
@@ -195,27 +196,61 @@ def build_efficientvit_l2_encoder(checkpoint=None):
         middle_op="fmbconv",
         out_dim=256,
     )
-    image_encoder = EfficientViTSamImageEncoder(backbone, neck)
+    image_encoder = EfficientViTSamImageEncoder(args, backbone, neck)
     set_norm_eps(image_encoder, 1e-6)
-    checkpoints = torch.load(checkpoint)
-    checkpoint = checkpoints["state_dict"]
-    new_state_dict = {}
-    if checkpoint!=None:
-        for key, value in checkpoint.items():
-            index = key.find("image_encoder.")
-            if index != -1:
-                new_key = key[index + len("image_encoder."):]
-                new_state_dict[new_key] = value
-            else:
-                continue
-        image_encoder.load_state_dict(new_state_dict,strict=True)  # origin
-        print('checkpoint_load_scucess')
+    # checkpoints = torch.load(checkpoint)
+    # checkpoint = checkpoints["state_dict"]
+    # new_state_dict = {}
+    # if checkpoint!=None:
+    #     for key, value in checkpoint.items():
+    #         index = key.find("image_encoder.")
+    #         if index != -1:
+    #             new_key = key[index + len("image_encoder."):]
+    #             new_state_dict[new_key] = value
+    #         else:
+    #             continue
+    #     image_encoder.load_state_dict(new_state_dict,strict=True)  # origin
+    #     print('checkpoint_load_scucess')
     return image_encoder
 
+def build_efficientvit_l2(args,checkpoint=None):
+    prompt_embed_dim = 256
+    image_size = args.image_size
+    vit_patch_size = 16
+    image_embedding_size = image_size // vit_patch_size
+    sam = Sam(
+        image_encoder=build_efficientvit_l2_encoder(args=args),
+        prompt_encoder=PromptEncoder(
+            embed_dim=prompt_embed_dim,
+            image_embedding_size=(image_embedding_size, image_embedding_size),
+            input_image_size=(image_size, image_size),
+            mask_in_chans=16,
+        ),
+        mask_decoder=MaskDecoder(
+            num_multimask_outputs=3,
+            transformer=TwoWayTransformer(
+                depth=2,
+                embedding_dim=prompt_embed_dim,
+                mlp_dim=2048,
+                num_heads=8,
+            ),
+            transformer_dim=prompt_embed_dim,
+            iou_head_depth=3,
+            iou_head_hidden_dim=256,
+        ),
+        pixel_mean=[123.675, 116.28, 103.53],
+        pixel_std=[58.395, 57.12, 57.375],
+    )
+    sam.eval()
+    if checkpoint is not None:
+        with open(checkpoint, "rb") as f:
+            state_dict = torch.load(f)
+        sam.load_state_dict(state_dict,strict=False)
+    return sam
 
 def build_sam_vit_h_encoder(args,checkpoint=None):
     prompt_embed_dim = 256
-    image_size = 1024
+    image_size = args.image_size
     vit_patch_size = 16
     encoder_embed_dim=1280
     encoder_depth=32
@@ -279,7 +314,7 @@ sam_model_registry = {
     "vit_l": build_sam_vit_l,
     "vit_b": build_sam_vit_b,
     "tiny_vit": build_sam_vit_t,
-    "efficientvit_l2": build_efficientvit_l2_encoder,
+    "efficientvit_l2": build_efficientvit_l2,
     "PromptGuidedDecoder": build_PromptGuidedDecoder,
     "sam_vit_h": build_sam_vit_h_encoder,
 }

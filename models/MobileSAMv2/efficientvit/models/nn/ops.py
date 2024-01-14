@@ -23,6 +23,7 @@ __all__ = [
     "ResBlock",
     "LiteMLA",
     "EfficientViTBlock",
+    "EfficientViTAdapterBlock",
     "ResidualBlock",
     "DAGBlock",
     "OpSequential",
@@ -490,6 +491,52 @@ class EfficientViTBlock(nn.Module):
         x = self.local_module(x)
         return x
 
+from .....common import Adapter
+
+
+class EfficientViTAdapterBlock(nn.Module):
+    def __init__(
+        self,
+        in_channels: int,
+        heads_ratio: float = 1.0,
+        dim=32,
+        expand_ratio: float = 4,
+        norm="bn2d",
+        act_func="hswish",
+    ):
+        super(EfficientViTAdapterBlock, self).__init__()
+        self.context_module = ResidualBlock(
+            LiteMLA(
+                in_channels=in_channels,
+                out_channels=in_channels,
+                heads_ratio=heads_ratio,
+                dim=dim,
+                norm=(None, norm),
+            ),
+            IdentityLayer(),
+        )
+        local_module = MBConv(
+            in_channels=in_channels,
+            out_channels=in_channels,
+            expand_ratio=expand_ratio,
+            use_bias=(True, True, False),
+            norm=(None, None, norm),
+            act_func=(act_func, act_func, None),
+        )
+        self.local_module = ResidualBlock(local_module, IdentityLayer())
+
+        self.MLP_Adapter = Adapter(dim, skip_connect=False)  # MLP-adapter, no skip connection
+        self.Space_Adapter = Adapter(dim)  # with skip connection
+        self.Depth_Adapter = Adapter(dim, skip_connect=False)  # no skip connection
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.context_module(x)
+        x = x.permute(0,2,3,1)
+        print(x.shape)
+        x = self.Space_Adapter(x)
+        x = x.permute(0,3,1,2)
+        x = self.local_module(x) + 0.5*self.MLP_Adapter(x)
+        return x
 
 #################################################################################
 #                             Functional Blocks                                 #

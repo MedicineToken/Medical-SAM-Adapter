@@ -99,6 +99,7 @@ class Mlp(nn.Module):
 class Block(nn.Module):
     def __init__(
         self,
+        args,
         dim,
         num_heads,
         mlp_ratio=4.0,
@@ -205,11 +206,16 @@ class ImageEncoderViT(nn.Module):
         )
         num_positions = num_patches + 1
         self.pos_embed = nn.Parameter(torch.zeros(1, num_positions, patch_embed_dim))
+
         self.blocks = nn.ModuleList()
+        if args.mod == 'sam_adpt':
+            block_class = AdapterBlock 
+        else:
+            block_class = Block 
 
         for i in range(depth):
             # vit_block = Block(patch_embed_dim, num_heads, mlp_ratio, True)
-            vit_block = AdapterBlock(
+            vit_block = block_class(
                 args = self.args,
                 dim=patch_embed_dim,
                 num_heads=num_heads,

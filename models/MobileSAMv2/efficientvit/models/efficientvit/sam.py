@@ -151,13 +151,14 @@ class SamNeck(DAGBlock):
 
 
 class EfficientViTSamImageEncoder(nn.Module):
-    def __init__(self, backbone: EfficientViTBackbone or EfficientViTLargeBackbone, neck: SamNeck):
+    def __init__(self, args, backbone: EfficientViTBackbone or EfficientViTLargeBackbone, neck: SamNeck):
         super().__init__()
         self.backbone = backbone
         self.neck = neck
 
         self.norm = build_norm("ln2d", 256)
-        self.img_size=1024
+        self.img_size=args.image_size
+        
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x=F.interpolate(x,size=(512,512),mode='bilinear')#mobilesamv2
         feed_dict = self.backbone(x)
@@ -165,5 +166,7 @@ class EfficientViTSamImageEncoder(nn.Module):
 
         output = feed_dict["sam_encoder"]
         output = self.norm(output)
+        out_size = self.img_size // 16
+        output=F.interpolate(output,size=(out_size,out_size),mode='bilinear')#mobilesamv2
         return output
 

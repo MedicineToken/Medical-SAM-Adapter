@@ -2,20 +2,13 @@
 # Han Cai, Junyan Li, Muyan Hu, Chuang Gan, Song Han
 # International Conference on Computer Vision (ICCV), 2023
 from typing import Dict, List, Tuple
+
 import torch
 import torch.nn as nn
 
-from ..nn import (
-    ConvLayer,
-    DSConv,
-    EfficientViTBlock,
-    FusedMBConv,
-    IdentityLayer,
-    MBConv,
-    OpSequential,
-    ResBlock,
-    ResidualBlock,
-)
+from ..nn import (ConvLayer, DSConv, EfficientViTAdapterBlock,
+                  EfficientViTBlock, FusedMBConv, IdentityLayer, MBConv,
+                  OpSequential, ResBlock, ResidualBlock)
 from ..utils import build_kwargs_from_config
 
 __all__ = [

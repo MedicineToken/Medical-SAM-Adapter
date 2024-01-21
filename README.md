@@ -53,8 +53,10 @@ ISIC/
      ISBI2016_ISIC_Part1_Test_GroundTruth.csv
      
       ISBI2016_ISIC_Part1_Training_GroundTruth.csv
+    
+    You can fine the csv files [here](https://github.com/KidsWithTokens/MedSegDiff/tree/master/data/isic_csv)
 
- 2. Begin Adapting! run: ``python train.py -net sam -mod sam_adpt -exp_name *msa_test_isic* -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 32 -dataset isic -data_path *../data*``
+ 3. Begin Adapting! run: ``python train.py -net sam -mod sam_adpt -exp_name *msa_test_isic* -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 32 -dataset isic -data_path *../data*``
  change "data_path" and "exp_name" for your own useage. you can change "exp_name" to anything you want.
 
  You can descrease the ``image size`` or batch size ``b`` if out of memory.

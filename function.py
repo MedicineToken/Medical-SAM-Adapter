@@ -122,6 +122,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                 true_mask_ave = (true_mask_ave > 0.5).float()
                 #true_mask_ave = cons_tensor(true_mask_ave)
             # imgs = imgs.to(dtype = mask_type,device = GPUdevice)
+
             
             '''Train'''
             if args.mod == 'sam_adpt':
@@ -130,6 +131,16 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                         value.requires_grad = False
                     else:
                         value.requires_grad = True
+            elif args.mod == 'sam_lora' or args.mod == 'sam_adalora':
+                from models.common import loralib as lora
+                lora.mark_only_lora_as_trainable(net.image_encoder)
+                if args.mod == 'sam_adalora':
+                    # Initialize the RankAllocator 
+                    rankallocator = lora.RankAllocator(
+                        net.image_encoder, lora_r=4, target_rank=8,
+                        init_warmup=500, final_warmup=1500, mask_interval=10, 
+                        total_step=3000, beta1=0.85, beta2=0.85, 
+                    )
             else:
                 for n, value in net.image_encoder.named_parameters(): 
                     value.requires_grad = True
@@ -180,10 +191,16 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
 
             pbar.set_postfix(**{'loss (batch)': loss.item()})
             epoch_loss += loss.item()
-            loss.backward()
 
             # nn.utils.clip_grad_value_(net.parameters(), 0.1)
-            optimizer.step()
+            if args.mod == 'sam_adalora':
+                (loss+lora.compute_orth_regu(net, regu_weight=0.1)).backward()
+                optimizer.step()
+                rankallocator.update_and_mask(net, ind)
+            else:
+                loss.backward()
+                optimizer.step()
+            
             optimizer.zero_grad()
 
             '''vis images'''

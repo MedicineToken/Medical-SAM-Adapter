@@ -1,2 +1,2 @@
 from .tinyvit.tiny_vit import TinyViT
-from .vit import AdapterBlock, Block
+from .vit import AdaloraBlock, AdapterBlock, Block, LoraBlock

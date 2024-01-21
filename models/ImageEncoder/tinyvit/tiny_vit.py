@@ -19,8 +19,10 @@ from timm.models.layers import to_2tuple, trunc_normal_
 from timm.models.registry import register_model
 
 from ...common import LayerNorm2d
+from .adalora_block import TinyViTAdaloraBlock
 from .adapter_block import TinyViTAdapterBlock
 from .block import TinyViTBlock
+from .lora_block import TinyViTLoraBlock
 from .utils import Conv2d_BN, DropPath, Mlp
 
 
@@ -192,6 +194,10 @@ class BasicLayer(nn.Module):
         # build blocks
         if args.mod == 'sam_adpt':
             block_class = TinyViTAdapterBlock
+        elif args.mod == 'sam_lora':
+            block_class = TinyViTLoraBlock
+        elif args.mod == 'sam_adalora':
+            block_class = TinyViTAdaloraBlock
         else:
             block_class = TinyViTBlock
             

@@ -3,10 +3,57 @@ import itertools
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from timm.models.layers import DropPath as TimmDropPath
 
-from ...common import Adapter
-from .utils import Conv2d_BN, DropPath, Mlp
+from ...common import loralib as lora
+from .utils import DropPath
 
+
+class Mlp(nn.Module):
+    def __init__(self, in_features, hidden_features=None,
+                 out_features=None, act_layer=nn.GELU, drop=0.):
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+        self.norm = nn.LayerNorm(in_features)
+        self.fc1 = lora.SVDLinear(in_features, hidden_features,r=4)
+        self.fc2 = lora.SVDLinear(hidden_features, out_features,r=4)
+        self.act = act_layer()
+        self.drop = nn.Dropout(drop)
+
+    def forward(self, x):
+        x = self.norm(x)
+
+        x = self.fc1(x)
+        x = self.act(x)
+        x = self.drop(x)
+        x = self.fc2(x)
+        x = self.drop(x)
+        return x
+
+class Conv2d_BN(torch.nn.Sequential):
+    def __init__(self, a, b, ks=1, stride=1, pad=0, dilation=1,
+                 groups=1, bn_weight_init=1):
+        super().__init__()
+        self.add_module('c', torch.nn.Conv2d(
+            a, b, ks, stride, pad, dilation, groups, bias=False))
+        bn = torch.nn.BatchNorm2d(b)
+        torch.nn.init.constant_(bn.weight, bn_weight_init)
+        torch.nn.init.constant_(bn.bias, 0)
+        self.add_module('bn', bn)
+
+    @torch.no_grad()
+    def fuse(self):
+        c, bn = self._modules.values()
+        w = bn.weight / (bn.running_var + bn.eps)**0.5
+        w = c.weight * w[:, None, None, None]
+        b = bn.bias - bn.running_mean * bn.weight / \
+            (bn.running_var + bn.eps)**0.5
+        m = torch.nn.Conv2d(w.size(1) * self.c.groups, w.size(
+            0), w.shape[2:], stride=self.c.stride, padding=self.c.padding, dilation=self.c.dilation, groups=self.c.groups)
+        m.weight.data.copy_(w)
+        m.bias.data.copy_(b)
+        return m
 
 class Attention(torch.nn.Module):
     def __init__(self, dim, key_dim, num_heads=8,
@@ -26,8 +73,8 @@ class Attention(torch.nn.Module):
         h = self.dh + nh_kd * 2
 
         self.norm = nn.LayerNorm(dim)
-        self.qkv = nn.Linear(dim, h)
-        self.proj = nn.Linear(self.dh, dim)
+        self.qkv = lora.SVDLinear(dim, h, r=4)
+        self.proj = lora.SVDLinear(self.dh, dim,r=4)
 
         points = list(itertools.product(
             range(resolution[0]), range(resolution[1])))
@@ -81,7 +128,7 @@ class Attention(torch.nn.Module):
         x = self.proj(x)
         return x
 
-class TinyViTAdapterBlock(nn.Module):
+class TinyViTAdaloraBlock(nn.Module):
     r""" TinyViT Block.
 
     Args:
@@ -103,7 +150,6 @@ class TinyViTAdapterBlock(nn.Module):
                  activation=nn.GELU,
                  ):
         super().__init__()
-        self.args = args,
         self.dim = dim
         self.input_resolution = input_resolution
         self.num_heads = num_heads
@@ -125,10 +171,6 @@ class TinyViTAdapterBlock(nn.Module):
         mlp_activation = activation
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim,
                        act_layer=mlp_activation, drop=drop)
-
-        self.MLP_Adapter = Adapter(dim, skip_connect=False)  # MLP-adapter, no skip connection
-        self.Space_Adapter = Adapter(dim)  # with skip connection
-        self.Depth_Adapter = Adapter(dim, skip_connect=False)  # no skip connection
 
         pad = local_conv_size // 2
         self.local_conv = Conv2d_BN(
@@ -158,27 +200,7 @@ class TinyViTAdapterBlock(nn.Module):
             # window partition
             x = x.view(B, nH, self.window_size, nW, self.window_size, C).transpose(2, 3).reshape(
                 B * nH * nW, self.window_size * self.window_size, C)
-
-            ## 3d branch
-            if self.args[0].thd:     
-                from einops import rearrange
-                hh, ww = x.shape[1], x.shape[2]
-                depth = self.args.chunk
-                xd = rearrange(x, '(b d) h w c -> (b h w) d c ', d=depth)
-                # xd = rearrange(xd, '(b d) n c -> (b n) d c', d=self.in_chans)
-                xd = self.norm1(xd)
-                dh, _ = closest_numbers(depth)
-                xd = rearrange(xd, 'bhw (dh dw) c -> bhw dh dw c', dh= dh)
-                xd = self.Depth_Adapter(self.attn(xd))
-                xd = rearrange(xd, '(b n) dh dw c ->(b dh dw) n c', n= hh * ww )
-
             x = self.attn(x)
-            x = self.Space_Adapter(x)
-            
-            if self.args[0].thd:
-                xd = rearrange(xd, 'b (hh ww) c -> b  hh ww c', hh= hh )
-                x = x + xd
-
             # window reverse
             x = x.view(B, nH, nW, self.window_size, self.window_size,
                        C).transpose(2, 3).reshape(B, pH, pW, C)
@@ -194,20 +216,9 @@ class TinyViTAdapterBlock(nn.Module):
         x = self.local_conv(x)
         x = x.view(B, C, L).transpose(1, 2)
 
-        x = x + self.drop_path(self.mlp(x)) + 0.5 * self.MLP_Adapter(x) 
+        x = x + self.drop_path(self.mlp(x))
         return x
 
     def extra_repr(self) -> str:
         return f"dim={self.dim}, input_resolution={self.input_resolution}, num_heads={self.num_heads}, " \
                f"window_size={self.window_size}, mlp_ratio={self.mlp_ratio}"
-
-def closest_numbers(target):
-    a = int(target ** 0.5)
-    b = a + 1
-    while True:
-        if a * b == target:
-            return (a, b)
-        elif a * b < target:
-            b += 1
-        else:
-            a -= 1

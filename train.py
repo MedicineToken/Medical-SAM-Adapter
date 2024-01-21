@@ -5,33 +5,34 @@
     Junde Wu
 """
 
+import argparse
 import os
 import sys
-import argparse
-from datetime import datetime
+import time
 from collections import OrderedDict
+from datetime import datetime
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.metrics import roc_auc_score, accuracy_score,confusion_matrix
 import torchvision
 import torchvision.transforms as transforms
+from PIL import Image
 from skimage import io
-from torch.utils.data import DataLoader
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
+from tensorboardX import SummaryWriter
 #from dataset import *
 from torch.autograd import Variable
-from PIL import Image
-from tensorboardX import SummaryWriter
+from torch.utils.data import DataLoader, random_split
+from tqdm import tqdm
+
+import cfg
+import function
+from conf import settings
 #from models.discriminatorlayer import discriminator
 from dataset import *
-from conf import settings
-import time
-import cfg
-from tqdm import tqdm
-from torch.utils.data import DataLoader, random_split
 from utils import *
-import function 
 
 args = cfg.parse_args()
 
@@ -137,7 +138,7 @@ best_tol = 1e4
 for epoch in range(settings.EPOCH):
     if epoch and epoch < 5:
         tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
-        logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch+1}.')
+        logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
         
     net.train()
     time_start = time.time()

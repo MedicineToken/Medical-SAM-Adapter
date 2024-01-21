@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from einops import rearrange
 
 from ...common import Adapter, LayerNorm2d
-from ...ImageEncoder import AdapterBlock, Block
+from ...ImageEncoder import AdapterBlock, Block, LoraBlock
 
 
 # This class and its supporting functions below lightly adapted from the ViTDet backbone available at: https://github.com/facebookresearch/detectron2/blob/main/detectron2/modeling/backbone/vit.py # noqa
@@ -78,6 +78,8 @@ class ImageEncoderViT(nn.Module):
         self.blocks = nn.ModuleList()
         if args.mod == 'sam_adpt':
             block_class = AdapterBlock 
+        elif args.mod == 'sam_lora':
+            block_class = LoraBlock 
         else:
             block_class = Block 
 

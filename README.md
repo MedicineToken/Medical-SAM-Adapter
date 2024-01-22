@@ -24,6 +24,7 @@ This method is elaborated on the paper [Medical SAM Adapter: Adapting Segment An
  - 24-01-20. Added a guide on utilizing the mobile sam in Med-SAM-Adapter, with a comparison of performance and speed. You can find it in [guidance/mobile_sam.ipynb](https://github.com/KidsWithTokens/Medical-SAM-Adapter/blob/main/guidance/mobile_sam.ipynb) Credit: @shinning0821
  - 24-01-21. We've added [LoRA](https://huggingface.co/docs/diffusers/training/lora) to our framework🤖. Use it by setting ``-mod`` as ``sam_lora``.
 A guidance can be found in [here](https://github.com/KidsWithTokens/Medical-SAM-Adapter/blob/main/guidance/lora.ipynb). Credit: @shinning0821
+ - 24-01-22. We've added datasetloader for [LIDC dataset](https://paperswithcode.com/dataset/lidc-idri), a multi-rater(4 raters 👨‍⚕️🧑🏽‍⚕️👩‍⚕️🧑🏽‍⚕️) lesions segmentation from low-dose lung CTs 🩻. You can download the preprocessed LIDC dataset at [here](https://github.com/stefanknegt/Probabilistic-Unet-Pytorch). Also updated environment, and random_click function. Credit: @jiayuanz3
 
  ## Requirement
 

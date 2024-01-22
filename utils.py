@@ -1114,9 +1114,14 @@ def calculate_gradient_penalty(netD, real_images, fake_images):
     return grad_penalty
 
 
-def random_click(mask, point_labels = 1, inout = 1):
-    indices = np.argwhere(mask == inout)
-    return indices[np.random.randint(len(indices))]
+def random_click(mask, point_labels = 1):
+    # check if all masks are black
+    max_label = max(set(mask.flatten()))
+    if max_label == 0:
+        point_labels = max_label
+    # max agreement position
+    indices = np.argwhere(mask == max_label) 
+    return point_labels, indices[np.random.randint(len(indices))]
 
 
 def generate_click_prompt(img, msk, pt_label = 1):

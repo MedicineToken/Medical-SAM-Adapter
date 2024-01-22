@@ -25,6 +25,7 @@ from tensorboardX import SummaryWriter
 #from dataset import *
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, random_split
+from torch.utils.data.sampler import SubsetRandomSampler
 from tqdm import tqdm
 
 import cfg
@@ -108,9 +109,24 @@ elif args.dataset == 'REFUGE':
     '''REFUGE data'''
     refuge_train_dataset = REFUGE(args, args.data_path, transform = transform_train, transform_msk= transform_train_seg, mode = 'Training')
     refuge_test_dataset = REFUGE(args, args.data_path, transform = transform_test, transform_msk= transform_test_seg, mode = 'Test')
-    
+
     nice_train_loader = DataLoader(refuge_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
     nice_test_loader = DataLoader(refuge_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
+    '''end'''
+
+elif args.dataset == 'LIDC':
+    '''LIDC data'''
+    dataset = LIDC(data_path = args.data_path)
+
+    dataset_size = len(dataset)
+    indices = list(range(dataset_size))
+    split = int(np.floor(0.2 * dataset_size))
+    np.random.shuffle(indices)
+    train_sampler = SubsetRandomSampler(indices[split:])
+    test_sampler = SubsetRandomSampler(indices[:split])
+
+    nice_train_loader = DataLoader(dataset, batch_size=args.b, sampler=train_sampler, num_workers=8, pin_memory=True)
+    nice_test_loader = DataLoader(dataset, batch_size=args.b, sampler=test_sampler, num_workers=8, pin_memory=True)
     '''end'''
 
 

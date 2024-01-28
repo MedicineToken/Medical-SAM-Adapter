@@ -45,7 +45,7 @@ class Block(nn.Module):
             qkv_bias=qkv_bias,
             use_rel_pos=use_rel_pos,
             rel_pos_zero_init=rel_pos_zero_init,
-            input_size=input_size if window_size == 0 else (window_size, window_size),
+            input_size=(64,64) if window_size == 0 else (window_size, window_size),
         )
 
         self.norm2 = norm_layer(dim)

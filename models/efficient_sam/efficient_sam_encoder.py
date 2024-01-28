@@ -132,6 +132,7 @@ class ImageEncoderViT(nn.Module):
                 args = self.args,
                 dim=patch_embed_dim,
                 num_heads=num_heads,
+                use_rel_pos=True,
                 mlp_ratio=mlp_ratio,
                 input_size=(img_size // patch_size, img_size // patch_size),
             )

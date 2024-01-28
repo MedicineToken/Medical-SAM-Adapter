@@ -12,7 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
 
-from ...common import Adapter, LayerNorm2d
+from ...common import LayerNorm2d
 from ...ImageEncoder import AdapterBlock, Block, LoraBlock
 
 

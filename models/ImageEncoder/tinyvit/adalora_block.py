@@ -11,13 +11,13 @@ from .utils import DropPath
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None,
-                 out_features=None, act_layer=nn.GELU, drop=0.):
+                 out_features=None, act_layer=nn.GELU, drop=0., lora_rank=4):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
         self.norm = nn.LayerNorm(in_features)
-        self.fc1 = lora.SVDLinear(in_features, hidden_features,r=4)
-        self.fc2 = lora.SVDLinear(hidden_features, out_features,r=4)
+        self.fc1 = lora.SVDLinear(in_features, hidden_features,r=lora_rank)
+        self.fc2 = lora.SVDLinear(hidden_features, out_features,r=lora_rank)
         self.act = act_layer()
         self.drop = nn.Dropout(drop)
 
@@ -59,6 +59,7 @@ class Attention(torch.nn.Module):
     def __init__(self, dim, key_dim, num_heads=8,
                  attn_ratio=4,
                  resolution=(14, 14),
+                 lora_rank=4,
                  ):
         super().__init__()
         # (h, w)
@@ -73,8 +74,8 @@ class Attention(torch.nn.Module):
         h = self.dh + nh_kd * 2
 
         self.norm = nn.LayerNorm(dim)
-        self.qkv = lora.SVDLinear(dim, h, r=4)
-        self.proj = lora.SVDLinear(self.dh, dim,r=4)
+        self.qkv = lora.SVDLinear(dim, h, r=lora_rank)
+        self.proj = lora.SVDLinear(self.dh, dim,r=lora_rank)
 
         points = list(itertools.product(
             range(resolution[0]), range(resolution[1])))
@@ -157,6 +158,11 @@ class TinyViTAdaloraBlock(nn.Module):
         self.window_size = window_size
         self.mlp_ratio = mlp_ratio
 
+        if(args.mid_dim != None):
+            lora_rank = args.mid_dim
+        else:
+            lora_rank = 4
+
         self.drop_path = DropPath(
             drop_path) if drop_path > 0. else nn.Identity()
 
@@ -165,12 +171,12 @@ class TinyViTAdaloraBlock(nn.Module):
 
         window_resolution = (window_size, window_size)
         self.attn = Attention(dim, head_dim, num_heads,
-                              attn_ratio=1, resolution=window_resolution)
+                              attn_ratio=1, resolution=window_resolution,lora_rank=lora_rank)
 
         mlp_hidden_dim = int(dim * mlp_ratio)
         mlp_activation = activation
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim,
-                       act_layer=mlp_activation, drop=drop)
+                       act_layer=mlp_activation, drop=drop,lora_rank=lora_rank)
 
         pad = local_conv_size // 2
         self.local_conv = Conv2d_BN(

@@ -51,12 +51,18 @@ class AdapterBlock(nn.Module):
             qkv_bias=qkv_bias,
             use_rel_pos=use_rel_pos,
             rel_pos_zero_init=rel_pos_zero_init,
-            input_size=input_size if window_size == 0 else (window_size, window_size),
+            input_size=(64,64) if window_size == 0 else (window_size, window_size),
         )
-        self.MLP_Adapter = Adapter(dim, skip_connect=False)  # MLP-adapter, no skip connection
-        self.Space_Adapter = Adapter(dim)  # with skip connection
+
+        if(args.mid_dim != None):
+            adapter_dim = args.mid_dim
+        else:
+            adapter_dim = dim
+
+        self.MLP_Adapter = Adapter(adapter_dim, skip_connect=False)  # MLP-adapter, no skip connection
+        self.Space_Adapter = Adapter(adapter_dim)  # with skip connection
         self.scale = scale
-        self.Depth_Adapter = Adapter(dim, skip_connect=False)  # no skip connection
+        self.Depth_Adapter = Adapter(adapter_dim, skip_connect=False)  # no skip connection
         self.norm2 = norm_layer(dim)
         self.mlp = MLPBlock(embedding_dim=dim, mlp_dim=int(dim * mlp_ratio), act=act_layer)
 
@@ -137,6 +143,7 @@ class Attention(nn.Module):
             # initialize relative positional embeddings
             self.rel_pos_h = nn.Parameter(torch.zeros(2 * input_size[0] - 1, head_dim))
             self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, H, W, _ = x.shape

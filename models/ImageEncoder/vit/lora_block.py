@@ -41,17 +41,23 @@ class LoraBlock(nn.Module):
         """
         super().__init__()
         self.norm1 = norm_layer(dim)
+        if(args.mid_dim != None):
+            lora_rank = args.mid_dim
+        else:
+            lora_rank = 4
+
         self.attn = Attention(
             dim,
             num_heads=num_heads,
             qkv_bias=qkv_bias,
             use_rel_pos=use_rel_pos,
             rel_pos_zero_init=rel_pos_zero_init,
-            input_size=input_size if window_size == 0 else (window_size, window_size),
+            lora_rank = lora_rank,
+            input_size=(64,64) if window_size == 0 else (window_size, window_size),
         )
 
         self.norm2 = norm_layer(dim)
-        self.mlp = MLPBlock(embedding_dim=dim, mlp_dim=int(dim * mlp_ratio), act=act_layer)
+        self.mlp = MLPBlock(embedding_dim=dim, mlp_dim=int(dim * mlp_ratio), act=act_layer,lora_rank=lora_rank)
 
         self.window_size = window_size
 
@@ -79,10 +85,11 @@ class MLPBlock(nn.Module):
         embedding_dim: int,
         mlp_dim: int,
         act: Type[nn.Module] = nn.GELU,
+        lora_rank: int = 4,
     ) -> None:
         super().__init__()
-        self.lin1 = lora.Linear(embedding_dim, mlp_dim, r=4)
-        self.lin2 = lora.Linear(mlp_dim, embedding_dim, r=4)
+        self.lin1 = lora.Linear(embedding_dim, mlp_dim, r=lora_rank)
+        self.lin2 = lora.Linear(mlp_dim, embedding_dim, r=lora_rank)
         self.act = act()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -99,6 +106,7 @@ class Attention(nn.Module):
         qkv_bias: bool = True,
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
+        lora_rank: int = 4,
         input_size: Optional[Tuple[int, int]] = None,
     ) -> None:
         """
@@ -116,8 +124,8 @@ class Attention(nn.Module):
         head_dim = dim // num_heads
         self.scale = head_dim**-0.5
 
-        self.qkv = lora.Linear(dim, dim * 3, bias=qkv_bias, r=4)
-        self.proj = lora.Linear(dim, dim, r=4)
+        self.qkv = lora.MergedLinear(dim, dim * 3, bias=qkv_bias, r=lora_rank, enable_lora=[True, False, True])
+        self.proj = nn.Linear(dim, dim)
 
         self.use_rel_pos = use_rel_pos
         if self.use_rel_pos:
@@ -129,8 +137,9 @@ class Attention(nn.Module):
             self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        B, H, W, _ = x.shape
+        B, H, W, n = x.shape
         # qkv with shape (3, B, nHead, H * W, C)
+        x = x.reshape(B,H*W,n)
         qkv = self.qkv(x).reshape(B, H * W, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
         # q, k, v with shape (B * nHead, H * W, C)
         q, k, v = qkv.reshape(3, B * self.num_heads, H * W, -1).unbind(0)

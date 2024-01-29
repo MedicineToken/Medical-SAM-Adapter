@@ -133,8 +133,8 @@ class Attention(nn.Module):
                 input_size is not None
             ), "Input size must be provided if using relative positional encoding."
             # initialize relative positional embeddings
-            self.rel_pos_h = nn.Parameter(torch.zeros(2 * input_size[0] - 1, head_dim))
-            self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
+            self.rel_h = nn.Parameter(torch.zeros(2 * input_size[0] - 1, head_dim))
+            self.rel_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, H, W, n = x.shape
@@ -147,7 +147,7 @@ class Attention(nn.Module):
         attn = (q * self.scale) @ k.transpose(-2, -1)
 
         if self.use_rel_pos:
-            attn = add_decomposed_rel_pos(attn, q, self.rel_pos_h, self.rel_pos_w, (H, W), (H, W))
+            attn = add_decomposed_rel_pos(attn, q, self.rel_h, self.rel_w, (H, W), (H, W))
 
         attn = attn.softmax(dim=-1)
         x = (attn @ v).view(B, self.num_heads, H, W, -1).permute(0, 2, 3, 1, 4).reshape(B, H, W, -1)

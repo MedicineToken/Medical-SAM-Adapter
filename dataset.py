@@ -156,6 +156,7 @@ class REFUGE(Dataset):
             'mask_cup': mask_cup,
             'mask_disc': mask_disc,
             'label': mask_cup,
+            # 'label': mask_disc,
             'p_label':point_label,
             'pt_cup':pt_cup,
             'pt_disc':pt_disc,

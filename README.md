@@ -1,7 +1,7 @@
 <h1 align="center">● Medical SAM Adapter</h1>
 
 <p align="center">
-    <a href="https://discord.gg/hXmQRUHvYc">
+    <a href="https://discord.gg/DN4rvk95CC">
         <img alt="Discord" src="https://img.shields.io/discord/1146610656779440188?logo=discord&style=flat&logoColor=white"/></a>
     <img src="https://img.shields.io/static/v1?label=license&message=GPL&color=white&style=flat" alt="License"/>
 </p>

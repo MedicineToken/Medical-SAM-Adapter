@@ -149,12 +149,14 @@ Welcome to open issues if you meet any problem. It would be appreciated if you c
 
  ## Cite
  ~~~
- @article{wu2023medical,
-   title={Medical sam adapter: Adapting segment anything model for medical image segmentation},
-   author={Wu, Junde and Fu, Rao and Fang, Huihui and Liu, Yuanpei and Wang, Zhaowei and Xu, Yanwu and Jin, Yueming and Arbel, Tal},
-   journal={arXiv preprint arXiv:2304.12620},
-   year={2023}
- }
+@misc{wu2023medical,
+      title={Medical SAM Adapter: Adapting Segment Anything Model for Medical Image Segmentation}, 
+      author={Junde Wu and Wei Ji and Yuanpei Liu and Huazhu Fu and Min Xu and Yanwu Xu and Yueming Jin},
+      year={2023},
+      eprint={2304.12620},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
  ~~~
 
 ## Buy Me A Coffee 🥤😉

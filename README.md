@@ -14,6 +14,7 @@ This method is elaborated on the paper [Medical SAM Adapter: Adapting Segment An
 
  ## News
  - [TOP] Join in our [Discord](https://discord.gg/EqbgSPEX) to ask questions and discuss with others.
+ - [TOP] 24-03-02 We have released our pre-trained Adapters in [Medical-Adapter-Zoo](https://huggingface.co/KidsWithTokens/Medical-Adapter-Zoo/tree/main). Try it without painful training 😉
  - 23-05-10. This project is still quickly updating 🌝. Check TODO list to see what will be released next.
  - 23-05-11. GitHub Dicussion opened. You guys can now talk, code and make friends on the playground 👨‍❤️‍👨. 
  - 23-12-22. Released data loader and example case on [REFUGE](https://refuge.grand-challenge.org/) dataset. Credit: @jiayuanz3
@@ -26,6 +27,11 @@ This method is elaborated on the paper [Medical SAM Adapter: Adapting Segment An
 A guidance can be found in [here](https://github.com/KidsWithTokens/Medical-SAM-Adapter/blob/main/guidance/lora.ipynb). Credit: @shinning0821
  - 24-01-22. We've added datasetloader for [LIDC dataset](https://paperswithcode.com/dataset/lidc-idri), a multi-rater(4 raters 👨‍⚕️🧑🏽‍⚕️👩‍⚕️🧑🏽‍⚕️) lesions segmentation from low-dose lung CTs 🩻. You can download the preprocessed LIDC dataset at [here](https://github.com/stefanknegt/Probabilistic-Unet-Pytorch). Also updated environment, and random_click function. Credit: @jiayuanz3
 
+## Medical Adapter Zoo
+We've released a bunch of pre-trained Adapters for various organs/lesions in [Medical-Adapter-Zoo](https://huggingface.co/KidsWithTokens/Medical-Adapter-Zoo/tree/main). Just pick the adapter that matches your disease and easily adjust SAM to suit your specific needs 😉. 
+
+If you can't find what you're looking for. Please suggest it through any contact method available to us (GitHub issue, HuggingFace community, or [Discord](https://discord.gg/EqbgSPEX)). We'll do our very best to include it.
+ 
  ## Requirement
 
  Install the environment:

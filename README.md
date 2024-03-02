@@ -27,7 +27,7 @@ This method is elaborated on the paper [Medical SAM Adapter: Adapting Segment An
 A guidance can be found in [here](https://github.com/KidsWithTokens/Medical-SAM-Adapter/blob/main/guidance/lora.ipynb). Credit: @shinning0821
  - 24-01-22. We've added datasetloader for [LIDC dataset](https://paperswithcode.com/dataset/lidc-idri), a multi-rater(4 raters 👨‍⚕️🧑🏽‍⚕️👩‍⚕️🧑🏽‍⚕️) lesions segmentation from low-dose lung CTs 🩻. You can download the preprocessed LIDC dataset at [here](https://github.com/stefanknegt/Probabilistic-Unet-Pytorch). Also updated environment, and random_click function. Credit: @jiayuanz3
 
-## Medical Adapter Zoo
+## Medical Adapter Zoo 🐘🐊🦍🦒🦨🦜🦥
 We've released a bunch of pre-trained Adapters for various organs/lesions in [Medical-Adapter-Zoo](https://huggingface.co/KidsWithTokens/Medical-Adapter-Zoo/tree/main). Just pick the adapter that matches your disease and easily adjust SAM to suit your specific needs 😉. 
 
 If you can't find what you're looking for. Please suggest it through any contact method available to us (GitHub issue, HuggingFace community, or [Discord](https://discord.gg/EqbgSPEX)). We'll do our very best to include it.

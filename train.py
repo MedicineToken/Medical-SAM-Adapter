@@ -153,9 +153,13 @@ best_tol = 1e4
 
 for epoch in range(settings.EPOCH):
     if epoch and epoch < 5:
-        tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
-        logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
-        
+        if args.dataset != 'REFUGE':
+            tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
+            logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
+        else:
+            tol, (eiou_cup, eiou_disc, edice_cup, edice_disc) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
+            logger.info(f'Total score: {tol}, IOU_CUP: {eiou_cup}, IOU_DISC: {eiou_disc}, DICE_CUP: {edice_cup}, DICE_DISC: {edice_disc} || @ epoch {epoch}.')
+
     net.train()
     time_start = time.time()
     loss = function.train_sam(args, net, optimizer, nice_train_loader, epoch, writer, vis = args.vis)
@@ -165,8 +169,12 @@ for epoch in range(settings.EPOCH):
 
     net.eval()
     if epoch and epoch % args.val_freq == 0 or epoch == settings.EPOCH-1:
-        tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
-        logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
+        if args.dataset != 'REFUGE':
+            tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
+            logger.info(f'Total score: {tol}, IOU: {eiou}, DICE: {edice} || @ epoch {epoch}.')
+        else:
+            tol, (eiou_cup, eiou_disc, edice_cup, edice_disc) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
+            logger.info(f'Total score: {tol}, IOU_CUP: {eiou_cup}, IOU_DISC: {eiou_disc}, DICE_CUP: {edice_cup}, DICE_DISC: {edice_disc} || @ epoch {epoch}.')
 
         if args.distributed != 'none':
             sd = net.module.state_dict()

@@ -99,8 +99,8 @@ class MaskDecoder(nn.Module):
         )
 
         # Select the correct mask or masks for output
-        if multimask_output:
-            mask_slice = slice(1, None)
+        if multimask_output: # for REFUGE dataset
+            mask_slice = slice(0, 2)
         else:
             mask_slice = slice(0, 1)
         masks = masks[:, mask_slice, :, :]

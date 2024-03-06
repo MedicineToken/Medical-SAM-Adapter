@@ -94,7 +94,7 @@ class ISIC2016(Dataset):
 
 
 class REFUGE(Dataset):
-    def __init__(self, args, data_path , transform = None, transform_msk = None, mode = 'Training',prompt = 'click', plane = False):
+    def __init__(self, args, data_path , transform = None, transform_msk = None, mode = 'Training',prompt = 'none', plane = False):
         self.data_path = data_path
         self.subfolders = [f.path for f in os.scandir(os.path.join(data_path, mode + '-400')) if f.is_dir()]
         self.mode = mode
@@ -132,9 +132,12 @@ class REFUGE(Dataset):
 
         # first click is the target agreement among most raters
         if self.prompt == 'click':
-            point_label, pt_cup = random_click(np.array(np.mean(np.stack(multi_rater_cup_np), axis=0)) / 255, point_label)
+            point_label, pt = random_click(np.array(np.mean(np.stack(multi_rater_cup_np), axis=0)) / 255, point_label)
             point_label, pt_disc = random_click(np.array(np.mean(np.stack(multi_rater_disc_np), axis=0)) / 255, point_label)
-
+        else:
+            # through experiment, you can get rid of prompts and it barely hurt the accuracy
+            pt = np.array([0, 0], dtype=np.int32)
+            
         if self.transform:
             state = torch.get_rng_state()
             img = self.transform(img)
@@ -147,20 +150,15 @@ class REFUGE(Dataset):
             multi_rater_disc = torch.stack(multi_rater_disc, dim=0)
             mask_disc = F.interpolate(multi_rater_disc, size=(self.mask_size, self.mask_size), mode='bilinear', align_corners=False).mean(dim=0)
             torch.set_rng_state(state)
+            
+            mask = torch.concat([mask_cup, mask_disc], dim=0)
 
         image_meta_dict = {'filename_or_obj':name}
         return {
             'image':img,
-            'multi_rater': multi_rater_cup,
-            'multi_rater_disc': multi_rater_disc,
-            'mask_cup': mask_cup,
-            'mask_disc': mask_disc,
-            'label': mask_cup,
-            # 'label': mask_disc,
+            'label': mask,
             'p_label':point_label,
-            'pt_cup':pt_cup,
-            'pt_disc':pt_disc,
-            'pt':pt_cup,
+            'pt':pt,
             'image_meta_dict':image_meta_dict,
         }
     

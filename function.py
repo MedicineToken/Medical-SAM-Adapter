@@ -161,7 +161,15 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                         labels=labels_torch,
                     )
                     
-            if args.net == 'sam' or args.net == 'mobile_sam':
+            if args.net == 'sam':
+                pred, _ = net.mask_decoder(
+                    image_embeddings=imge,
+                    image_pe=net.prompt_encoder.get_dense_pe(), 
+                    sparse_prompt_embeddings=se,
+                    dense_prompt_embeddings=de, 
+                    multimask_output=args.multimask_output,
+                )
+            elif args.net == 'mobile_sam':
                 pred, _ = net.mask_decoder(
                     image_embeddings=imge,
                     image_pe=net.prompt_encoder.get_dense_pe(), 
@@ -169,7 +177,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                     dense_prompt_embeddings=de, 
                     multimask_output=False,
                 )
-
             elif args.net == "efficient_sam":
                 se = se.view(
                     se.shape[0],
@@ -310,7 +317,15 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                             labels=labels_torch,
                         )
 
-                    if args.net == 'sam' or args.net == 'mobile_sam':
+                    if args.net == 'sam':
+                        pred, _ = net.mask_decoder(
+                            image_embeddings=imge,
+                            image_pe=net.prompt_encoder.get_dense_pe(), 
+                            sparse_prompt_embeddings=se,
+                            dense_prompt_embeddings=de, 
+                            multimask_output=args.multimask_output,
+                        )
+                    elif args.net == 'mobile_sam':
                         pred, _ = net.mask_decoder(
                             image_embeddings=imge,
                             image_pe=net.prompt_encoder.get_dense_pe(), 

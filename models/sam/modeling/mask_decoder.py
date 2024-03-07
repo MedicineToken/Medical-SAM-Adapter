@@ -45,7 +45,8 @@ class MaskDecoder(nn.Module):
         self.transformer = transformer
 
         self.iou_token = nn.Embedding(1, transformer_dim)
-        self.num_mask_tokens = num_multimask_outputs
+        self.num_multimask_outputs = num_multimask_outputs
+        self.num_mask_tokens = max(4, num_multimask_outputs) # for backward compatibility on loading checkpoints
         self.mask_tokens = nn.Embedding(self.num_mask_tokens, transformer_dim)
 
         self.output_upscaling = nn.Sequential(
@@ -97,10 +98,7 @@ class MaskDecoder(nn.Module):
         )
 
         # Select the correct mask or masks for output
-        if multimask_output: # for multi-class segmentation
-            mask_slice = slice(0, None)
-        else:
-            mask_slice = slice(0, 1)
+        mask_slice = slice(0, self.num_multimask_outputs)
         masks = masks[:, mask_slice, :, :]
         iou_pred = iou_pred[:, mask_slice]
 

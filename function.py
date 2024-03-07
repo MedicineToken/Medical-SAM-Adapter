@@ -167,7 +167,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                     image_pe=net.prompt_encoder.get_dense_pe(), 
                     sparse_prompt_embeddings=se,
                     dense_prompt_embeddings=de, 
-                    multimask_output=args.multimask_output,
+                    multimask_output=(args.multimask_output > 1),
                 )
             elif args.net == 'mobile_sam':
                 pred, _ = net.mask_decoder(
@@ -228,7 +228,7 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
 
     mask_type = torch.float32
     n_val = len(val_loader)  # the number of batch
-    ave_res, mix_res = (0,0,0,0), (0,0,0,0)
+    ave_res, mix_res = (0,0,0,0), (0,)*args.multimask_output*2
     rater_res = [(0,0,0,0) for _ in range(6)]
     tot = 0
     hard = 0
@@ -323,7 +323,7 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                             image_pe=net.prompt_encoder.get_dense_pe(), 
                             sparse_prompt_embeddings=se,
                             dense_prompt_embeddings=de, 
-                            multimask_output=args.multimask_output,
+                            multimask_output=(args.multimask_output > 1),
                         )
                     elif args.net == 'mobile_sam':
                         pred, _ = net.mask_decoder(

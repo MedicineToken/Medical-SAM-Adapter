@@ -1189,4 +1189,24 @@ def generate_click_prompt(img, msk, pt_label = 1):
     return img, pt, msk #[b, 2, d], [b, c, h, w, d]
 
 
+def random_box(multi_rater):
+    max_value = torch.max(multi_rater[:,0,:,:], dim=0)[0]
+    max_value_position = torch.nonzero(max_value)
+
+    x_coords = max_value_position[:, 0]
+    y_coords = max_value_position[:, 1]
+
+
+    x_min = int(torch.min(x_coords))
+    x_max = int(torch.max(x_coords))
+    y_min = int(torch.min(y_coords))
+    y_max = int(torch.max(y_coords))
+
+
+    x_min = random.choice(np.arange(x_min-10,x_min+11))
+    x_max = random.choice(np.arange(x_max-10,x_max+11))
+    y_min = random.choice(np.arange(y_min-10,y_min+11))
+    y_max = random.choice(np.arange(y_max-10,y_max+11))
+
+    return x_min, x_max, y_min, y_max
 

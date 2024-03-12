@@ -239,6 +239,11 @@ class LIDC(Dataset):
 
         multi_rater = torch.stack(multi_rater, dim=0)
         multi_rater = multi_rater.unsqueeze(1)
+
+        if self.prompt == 'box':
+            x_min, x_max, y_min, y_max = random_box(multi_rater)
+            box = [x_min, x_max, y_min, y_max]
+
         mask = multi_rater.mean(dim=0) # average
 
         image_meta_dict = {'filename_or_obj':name}
@@ -248,6 +253,7 @@ class LIDC(Dataset):
             'label': mask,
             'p_label':point_label,
             'pt':pt,
+            'box': box,
             'image_meta_dict':image_meta_dict,
         }
         

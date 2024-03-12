@@ -20,7 +20,7 @@ from skimage import io
 from skimage.transform import rotate
 from torch.utils.data import Dataset
 
-from utils import random_click
+from utils import random_click, random_box
 
 
 class ISIC2016(Dataset):
@@ -135,7 +135,7 @@ class REFUGE(Dataset):
             point_label, pt = random_click(np.array(np.mean(np.stack(multi_rater_cup_np), axis=0)) / 255, point_label)
             point_label, pt_disc = random_click(np.array(np.mean(np.stack(multi_rater_disc_np), axis=0)) / 255, point_label)
         else:
-            # through experiment, you can get rid of prompts and it barely hurt the accuracy
+            # you may want to get rid of click prompts
             pt = np.array([0, 0], dtype=np.int32)
             
         if self.transform:
@@ -153,12 +153,23 @@ class REFUGE(Dataset):
             
             mask = torch.concat([mask_cup, mask_disc], dim=0)
 
+        if self.prompt == 'box':
+            x_min_cup, x_max_cup, y_min_cup, y_max_cup = random_box(multi_rater_cup)
+            box_cup = [x_min_cup, x_max_cup, y_min_cup, y_max_cup]
+            x_min_disc, x_max_disc, y_min_disc, y_max_disc = random_box(multi_rater_disc)
+            box_disc = [x_min_disc, x_max_disc, y_min_disc, y_max_disc]
+        else:
+            # you may want to get rid of box prompts
+            box_cup = [0, 0, 0, 0]
+            box_disc = [0, 0, 0, 0]
+
         image_meta_dict = {'filename_or_obj':name}
         return {
             'image':img,
             'label': mask,
             'p_label':point_label,
             'pt':pt,
+            'box': box_cup,
             'image_meta_dict':image_meta_dict,
         }
     
@@ -228,6 +239,11 @@ class LIDC(Dataset):
 
         multi_rater = torch.stack(multi_rater, dim=0)
         multi_rater = multi_rater.unsqueeze(1)
+
+        if self.prompt == 'box':
+            x_min, x_max, y_min, y_max = random_box(multi_rater)
+            box = [x_min, x_max, y_min, y_max]
+
         mask = multi_rater.mean(dim=0) # average
 
         image_meta_dict = {'filename_or_obj':name}
@@ -237,6 +253,7 @@ class LIDC(Dataset):
             'label': mask,
             'p_label':point_label,
             'pt':pt,
+            'box': box,
             'image_meta_dict':image_meta_dict,
         }
         

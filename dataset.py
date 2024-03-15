@@ -134,6 +134,8 @@ class REFUGE(Dataset):
         if self.prompt == 'click':
             point_label, pt_cup = random_click(np.array(np.mean(np.stack(multi_rater_cup_np), axis=0)) / 255, point_label)
             point_label, pt_disc = random_click(np.array(np.mean(np.stack(multi_rater_disc_np), axis=0)) / 255, point_label)
+        
+        pt = np.array([pt_cup[1],pt_cup[0]])
 
         if self.transform:
             state = torch.get_rng_state()
@@ -155,7 +157,7 @@ class REFUGE(Dataset):
             'multi_rater_disc': multi_rater_disc,
             'mask_cup': mask_cup,
             'mask_disc': mask_disc,
-            'label': mask_cup,
+            'label': mask_disc,
             # 'label': mask_disc,
             'p_label':point_label,
             'pt_cup':pt_cup,
@@ -242,3 +244,239 @@ class LIDC(Dataset):
             'image_meta_dict':image_meta_dict,
         }
         
+class DDTI(Dataset):
+    def __init__(self, args, data_path , transform = None, transform_msk = None, mode = 'Training',prompt = 'click', plane = False):
+
+        self.name_list = os.listdir(os.path.join(data_path,mode,'images'))
+        self.data_path = data_path
+        self.mode = mode
+        self.prompt = prompt
+        self.img_size = args.image_size
+
+        self.transform = transform
+        self.transform_msk = transform_msk
+
+    def __len__(self):
+        return len(self.name_list)
+
+    def find_connected_components(self,mask):
+        mask = np.clip(mask,0,1)
+        num_labels, labels = cv2.connectedComponents(mask.astype(np.uint8))
+        point = []
+        point_labels = []
+
+        for label in range(1, num_labels):
+            component_mask = np.where(labels == label, 1, 0)
+            area = np.sum(component_mask)
+
+            if area > 400:
+                point_label, random_point = random_click(component_mask)
+                point.append(random_point)
+                point_labels.append(point_label)
+                # print(f"Random point in component {label}: {random_point}, label: {point_labels}")
+        if(len(point)==1):
+            point.append(point[0])
+            point_labels.append(point_labels[0])
+        if(len(point)>2):
+            point = point[:2]
+            point_labels = point_labels[:2]
+        point = np.array(point)
+        point_labels = np.array(point_labels)
+        return point_labels,point
+    
+    def __getitem__(self, index):
+        point_label = 1
+
+        """Get the images"""
+        name = self.name_list[index]
+        img_path = os.path.join(self.data_path, self.mode, 'images', name)
+        msk_path = os.path.join(self.data_path, self.mode, 'masks', name)
+
+        img = Image.open(img_path).convert('RGB')
+        mask = Image.open(msk_path).convert('L')
+
+        # if self.mode == 'Training':
+        #     label = 0 if self.label_list[index] == 'benign' else 1
+        # else:
+        #     label = int(self.label_list[index])
+
+        newsize = (self.img_size, self.img_size)
+        mask = mask.resize(newsize)
+
+        if self.prompt == 'click':
+            # two prompt
+            point_label, pt = self.find_connected_components(np.array(mask))
+            # one prompt
+            # point_label, pt = random_click(np.array(mask) / 255, point_label)
+
+        if self.transform:
+            state = torch.get_rng_state()
+            img = self.transform(img)
+            torch.set_rng_state(state)
+
+
+            if self.transform_msk:
+                mask = self.transform_msk(mask)
+                
+            # if (inout == 0 and point_label == 1) or (inout == 1 and point_label == 0):
+            #     mask = 1 - mask
+        mask = torch.clamp(mask,min=0,max=1).int()
+
+        name = name.split('/')[-1].split(".jpg")[0]
+        image_meta_dict = {'filename_or_obj':name}
+        return {
+            'image':img,
+            'label': mask,
+            'p_label':point_label,
+            'pt':pt,
+            'image_meta_dict':image_meta_dict,
+        }
+
+
+class Brat(Dataset):
+    def __init__(self, args, data_path , transform = None, transform_msk = None, mode = 'Training',prompt = 'click', plane = False):
+
+        with open(os.path.join(data_path,mode +'.txt'), 'r') as file:
+            self.name_list = [line.strip() for line in file]
+
+        self.args = args
+        self.data_path = data_path
+        self.mode = mode
+        self.prompt = prompt
+        self.img_size = args.image_size
+
+        self.transform = transform
+        self.transform_msk = transform_msk
+
+    def __len__(self):
+        return len(self.name_list)
+
+    def load_all_levels(self,path):
+        import nibabel as nib
+        data_dir = os.path.join(self.data_path,'Data')
+        levels = ['t1','flair','t2','t1ce']
+        raw_image = [nib.load(os.path.join
+        (data_dir,path,path+'_'+level+'.nii.gz')).get_fdata() for level in levels]
+        raw_seg = nib.load(os.path.join(data_dir,path,path+'_seg.nii.gz')).get_fdata()
+
+        return raw_image[0], raw_seg
+
+    def __getitem__(self, index):
+        # if self.mode == 'Training':
+        #     point_label = random.randint(0, 1)
+        #     inout = random.randint(0, 1)
+        # else:
+        #     inout = 1
+        #     point_label = 1
+        point_label = 1
+
+        """Get the images"""
+        name = self.name_list[index]
+        img,mask = self.load_all_levels(name)
+        mask = np.clip(mask,0,1)
+        # if self.mode == 'Training':
+        #     label = 0 if self.label_list[index] == 'benign' else 1
+        # else:
+        #     label = int(self.label_list[index])
+
+        mask = np.resize(mask,(self.img_size, self.img_size,mask.shape[-1]))
+        
+        if self.prompt == 'click':
+            point_label, pt = random_click(np.array(mask), point_label)
+
+        
+        img = np.resize(mask,(self.args.image_size, self.args.image_size,img.shape[-1]))
+        mask = np.resize(mask,(self.args.out_size,self.args.out_size,mask.shape[-1]))
+
+        img = torch.tensor(img)
+        mask = torch.tensor(mask)
+        # if self.transform:
+        #     state = torch.get_rng_state()
+        #     img = self.transform(img)
+        #     torch.set_rng_state(state)
+
+        #     if self.transform_msk:
+        #         mask = self.transform_msk(mask)
+                
+        #     # if (inout == 0 and point_label == 1) or (inout == 1 and point_label == 0):
+        #     #     mask = 1 - mask
+        name = name.split('/')[-1].split(".jpg")[0]
+        image_meta_dict = {'filename_or_obj':name}
+        return {
+            'image':img,
+            'label': mask,
+            'p_label':point_label,
+            'pt':pt,
+            'image_meta_dict':image_meta_dict,
+        }
+
+class MyLIDC(Dataset):
+    names = []
+    images = []
+    labels = []
+    series_uid = []
+
+    def __init__(self, args, data_path, transform=None, transform_msk = None, prompt = 'click'):
+        self.name_list = os.listdir(os.path.join(data_path,'image'))
+        self.label_list = os.listdir(os.path.join(data_path,'mask'))
+        self.data_path = data_path
+        self.prompt = prompt
+        self.img_size = args.image_size
+
+        self.transform = transform
+        self.transform_msk = transform_msk
+
+    def __len__(self):
+        return len(self.name_list)
+
+    def __getitem__(self, index):
+        # if self.mode == 'Training':
+        #     point_label = random.randint(0, 1)
+        #     inout = random.randint(0, 1)
+        # else:
+        #     inout = 1
+        #     point_label = 1
+        point_label = 1
+
+        """Get the images"""
+        name = self.name_list[index]
+        img_path = os.path.join(self.data_path, 'image', name)
+        
+        mask_name = self.label_list[index]
+        msk_path = os.path.join(self.data_path, 'mask', mask_name)
+
+        img = Image.open(img_path).convert('RGB')
+        mask = Image.open(msk_path).convert('L')
+
+        # if self.mode == 'Training':
+        #     label = 0 if self.label_list[index] == 'benign' else 1
+        # else:
+        #     label = int(self.label_list[index])
+
+        newsize = (self.img_size, self.img_size)
+        mask = mask.resize(newsize)
+
+        if self.prompt == 'click':
+            point_label, pt = random_click(np.array(mask) / 255, point_label)
+
+        if self.transform:
+            state = torch.get_rng_state()
+            img = self.transform(img)
+            torch.set_rng_state(state)
+
+
+            if self.transform_msk:
+                mask = self.transform_msk(mask)
+                
+            # if (inout == 0 and point_label == 1) or (inout == 1 and point_label == 0):
+            #     mask = 1 - mask
+
+        name = name.split('/')[-1].split(".jpg")[0]
+        image_meta_dict = {'filename_or_obj':name}
+        return {
+            'image':img,
+            'label': mask,
+            'p_label':point_label,
+            'pt':pt,
+            'image_meta_dict':image_meta_dict,
+        }

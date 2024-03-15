@@ -79,7 +79,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
     with tqdm(total=len(train_loader), desc=f'Epoch {epoch}', unit='img') as pbar:
         for pack in train_loader:
             # torch.cuda.empty_cache()
-
             imgs = pack['image'].to(dtype = torch.float32, device = GPUdevice)
             masks = pack['label'].to(dtype = torch.float32, device = GPUdevice)
             # for k,v in pack['image_meta_dict'].items():
@@ -109,12 +108,13 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
             b_size,c,w,h = imgs.size()
             longsize = w if w >=h else h
 
-            if point_labels[0] != -1:
-                # point_coords = samtrans.ResizeLongestSide(longsize).apply_coords(pt, (h, w))
+            if point_labels.clone().flatten()[0] != -1:
+                    # point_coords = samtrans.ResizeLongestSide(longsize).apply_coords(pt, (h, w))
                 point_coords = pt
                 coords_torch = torch.as_tensor(point_coords, dtype=torch.float, device=GPUdevice)
                 labels_torch = torch.as_tensor(point_labels, dtype=torch.int, device=GPUdevice)
-                coords_torch, labels_torch = coords_torch[None, :, :], labels_torch[None, :]
+                if(len(point_labels.shape)==1): # only one point prompt
+                    coords_torch, labels_torch, showp = coords_torch[None, :, :], labels_torch[None, :], showp[None, :, :]
                 pt = (coords_torch, labels_torch)
 
             '''init'''
@@ -123,7 +123,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                 #true_mask_ave = cons_tensor(true_mask_ave)
             # imgs = imgs.to(dtype = mask_type,device = GPUdevice)
 
-            
             '''Train'''
             if args.mod == 'sam_adpt':
                 for n, value in net.image_encoder.named_parameters(): 
@@ -146,7 +145,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                     value.requires_grad = True
                     
             imge= net.image_encoder(imgs)
-            
             with torch.no_grad():
                 if args.net == 'sam' or args.net == 'mobile_sam':
                     se, de = net.prompt_encoder(
@@ -207,7 +205,7 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
             if vis:
                 if ind % vis == 0:
                     namecat = 'Train'
-                    for na in name:
+                    for na in name[:2]:
                         namecat = namecat + na.split('/')[-1].split('.')[0] + '+'
                     vis_image(imgs,pred,masks, os.path.join(args.path_helper['sample_path'], namecat+'epoch+' +str(epoch) + '.jpg'), reverse=False, points=showp)
 
@@ -280,12 +278,13 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                 b_size,c,w,h = imgs.size()
                 longsize = w if w >=h else h
 
-                if point_labels[0] != -1:
+                if point_labels.clone().flatten()[0] != -1:
                     # point_coords = samtrans.ResizeLongestSide(longsize).apply_coords(pt, (h, w))
                     point_coords = pt
                     coords_torch = torch.as_tensor(point_coords, dtype=torch.float, device=GPUdevice)
                     labels_torch = torch.as_tensor(point_labels, dtype=torch.int, device=GPUdevice)
-                    coords_torch, labels_torch = coords_torch[None, :, :], labels_torch[None, :]
+                    if(len(point_labels.shape)==1): # only one point prompt
+                        coords_torch, labels_torch, showp = coords_torch[None, :, :], labels_torch[None, :], showp[None, :, :]
                     pt = (coords_torch, labels_torch)
 
                 '''init'''
@@ -339,7 +338,9 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                     '''vis images'''
                     if ind % args.vis == 0:
                         namecat = 'Test'
-                        for na in name:
+                        for na in name[:2
+                        
+                        ]:
                             img_name = na.split('/')[-1].split('.')[0]
                             namecat = namecat + img_name + '+'
                         vis_image(imgs,pred, masks, os.path.join(args.path_helper['sample_path'], namecat+'epoch+' +str(epoch) + '.jpg'), reverse=False, points=showp)

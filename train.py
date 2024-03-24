@@ -70,65 +70,87 @@ logger = create_logger(args.path_helper['log_path'])
 logger.info(args)
 
 
-'''segmentation data'''
-transform_train = transforms.Compose([
-    transforms.Resize((args.image_size,args.image_size)),
-    transforms.ToTensor(),
-])
+# '''segmentation data'''
+# transform_train = transforms.Compose([
+#     transforms.Resize((args.image_size,args.image_size)),
+#     transforms.ToTensor(),
+# ])
 
-transform_train_seg = transforms.Compose([
-    transforms.Resize((args.out_size,args.out_size)),
-    transforms.ToTensor(),
-])
+# transform_train_seg = transforms.Compose([
+#     transforms.Resize((args.out_size,args.out_size)),
+#     transforms.ToTensor(),
+# ])
 
-transform_test = transforms.Compose([
-    transforms.Resize((args.image_size, args.image_size)),
-    transforms.ToTensor(),
-])
+# transform_test = transforms.Compose([
+#     transforms.Resize((args.image_size, args.image_size)),
+#     transforms.ToTensor(),
+# ])
 
-transform_test_seg = transforms.Compose([
-    transforms.Resize((args.out_size,args.out_size)),
-    transforms.ToTensor(),
-])
+# transform_test_seg = transforms.Compose([
+#     transforms.Resize((args.out_size,args.out_size)),
+#     transforms.ToTensor(),
+# ])
+
+# transform_3d_seg = transforms.Compose([
+#     transforms.ToTensor(),
+# ])
+
+# if args.dataset == 'isic':
+#     '''isic data'''
+#     isic_train_dataset = ISIC2016(args, args.data_path, transform = transform_train, transform_msk= transform_train_seg, mode = 'Training')
+#     isic_test_dataset = ISIC2016(args, args.data_path, transform = transform_test, transform_msk= transform_test_seg, mode = 'Test')
+
+#     nice_train_loader = DataLoader(isic_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
+#     nice_test_loader = DataLoader(isic_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
+#     '''end'''
+
+# elif args.dataset == 'decathlon':
+#     nice_train_loader, nice_test_loader, transform_train, transform_val, train_list, val_list = get_decath_loader(args)
 
 
-if args.dataset == 'isic':
-    '''isic data'''
-    isic_train_dataset = ISIC2016(args, args.data_path, transform = transform_train, transform_msk= transform_train_seg, mode = 'Training')
-    isic_test_dataset = ISIC2016(args, args.data_path, transform = transform_test, transform_msk= transform_test_seg, mode = 'Test')
+# elif args.dataset == 'REFUGE':
+#     '''REFUGE data'''
+#     refuge_train_dataset = REFUGE(args, args.data_path, transform = transform_3d_seg, transform_msk= transform_3d_seg, mode = 'Training')
+#     refuge_test_dataset = REFUGE(args, args.data_path, transform = transform_3d_seg, transform_msk= transform_3d_seg, mode = 'Test')
 
-    nice_train_loader = DataLoader(isic_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
-    nice_test_loader = DataLoader(isic_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
-    '''end'''
+#     nice_train_loader = DataLoader(refuge_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
+#     nice_test_loader = DataLoader(refuge_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
+#     '''end'''
 
-elif args.dataset == 'decathlon':
-    nice_train_loader, nice_test_loader, transform_train, transform_val, train_list, val_list = get_decath_loader(args)
+# elif args.dataset == 'LIDC':
+#     '''LIDC data'''
+#     # dataset = LIDC(data_path = args.data_path)
+#     dataset = MyLIDC(args, data_path = args.data_path,transform = transform_train, transform_msk= transform_train_seg)
 
+#     dataset_size = len(dataset)
+#     indices = list(range(dataset_size))
+#     split = int(np.floor(0.2 * dataset_size))
+#     np.random.shuffle(indices)
+#     train_sampler = SubsetRandomSampler(indices[split:])
+#     test_sampler = SubsetRandomSampler(indices[:split])
 
-elif args.dataset == 'REFUGE':
-    '''REFUGE data'''
-    refuge_train_dataset = REFUGE(args, args.data_path, transform = transform_train, transform_msk= transform_train_seg, mode = 'Training')
-    refuge_test_dataset = REFUGE(args, args.data_path, transform = transform_test, transform_msk= transform_test_seg, mode = 'Test')
+#     nice_train_loader = DataLoader(dataset, batch_size=args.b, sampler=train_sampler, num_workers=8, pin_memory=True)
+#     nice_test_loader = DataLoader(dataset, batch_size=args.b, sampler=test_sampler, num_workers=8, pin_memory=True)
+#     '''end'''
 
-    nice_train_loader = DataLoader(refuge_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
-    nice_test_loader = DataLoader(refuge_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
-    '''end'''
+# elif args.dataset == 'DDTI':
+#     '''REFUGE data'''
+#     refuge_train_dataset = DDTI(args, args.data_path, transform = transform_train, transform_msk= transform_train_seg, mode = 'Training')
+#     refuge_test_dataset = DDTI(args, args.data_path, transform = transform_test, transform_msk= transform_test_seg, mode = 'Test')
 
-elif args.dataset == 'LIDC':
-    '''LIDC data'''
-    dataset = LIDC(data_path = args.data_path)
+#     nice_train_loader = DataLoader(refuge_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
+#     nice_test_loader = DataLoader(refuge_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
+#     '''end'''
 
-    dataset_size = len(dataset)
-    indices = list(range(dataset_size))
-    split = int(np.floor(0.2 * dataset_size))
-    np.random.shuffle(indices)
-    train_sampler = SubsetRandomSampler(indices[split:])
-    test_sampler = SubsetRandomSampler(indices[:split])
+# elif args.dataset == 'Brat':
+#     '''REFUGE data'''
+#     refuge_train_dataset = Brat(args, args.data_path, transform = transform_train, transform_msk= transform_train_seg, mode = 'Training')
+#     refuge_test_dataset = Brat(args, args.data_path, transform = transform_test, transform_msk= transform_test_seg, mode = 'Test')
 
-    nice_train_loader = DataLoader(dataset, batch_size=args.b, sampler=train_sampler, num_workers=8, pin_memory=True)
-    nice_test_loader = DataLoader(dataset, batch_size=args.b, sampler=test_sampler, num_workers=8, pin_memory=True)
-    '''end'''
-
+#     nice_train_loader = DataLoader(refuge_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
+#     nice_test_loader = DataLoader(refuge_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
+#     '''end'''
+nice_train_loader, nice_test_loader = get_dataloader(args)
 
 '''checkpoint path and tensorboard'''
 # iter_per_epoch = len(Glaucoma_training_loader)
@@ -149,9 +171,10 @@ checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pth')
 '''begain training'''
 best_acc = 0.0
 best_tol = 1e4
-
+best_dice = 0.0
 
 for epoch in range(settings.EPOCH):
+
     if epoch and epoch < 5:
         if args.dataset != 'REFUGE':
             tol, (eiou, edice) = function.validation_sam(args, nice_test_loader, epoch, net, writer)
@@ -181,7 +204,7 @@ for epoch in range(settings.EPOCH):
         else:
             sd = net.state_dict()
 
-        if tol < best_tol:
+        if edice > best_dice:
             best_tol = tol
             is_best = True
 
@@ -190,9 +213,9 @@ for epoch in range(settings.EPOCH):
             'model': args.net,
             'state_dict': sd,
             'optimizer': optimizer.state_dict(),
-            'best_tol': best_tol,
+            'best_tol': best_dice,
             'path_helper': args.path_helper,
-        }, is_best, args.path_helper['ckpt_path'], filename="best_checkpoint")
+        }, is_best, args.path_helper['ckpt_path'], filename="best_dice_checkpoint.pth")
         else:
             is_best = False
 

@@ -1,7 +1,7 @@
 <h1 align="center">● Medical SAM Adapter</h1>
 
 <p align="center">
-    <a href="https://discord.gg/hXmQRUHvYc">
+    <a href="https://discord.gg/DN4rvk95CC">
         <img alt="Discord" src="https://img.shields.io/discord/1146610656779440188?logo=discord&style=flat&logoColor=white"/></a>
     <img src="https://img.shields.io/static/v1?label=license&message=GPL&color=white&style=flat" alt="License"/>
 </p>
@@ -14,6 +14,7 @@ This method is elaborated on the paper [Medical SAM Adapter: Adapting Segment An
 
  ## News
  - [TOP] Join in our [Discord](https://discord.gg/EqbgSPEX) to ask questions and discuss with others.
+ - [TOP] 24-03-02 We have released our pre-trained Adapters in [Medical-Adapter-Zoo](https://huggingface.co/KidsWithTokens/Medical-Adapter-Zoo/tree/main). Try it without painful training 😉 Credit: @shinning0821
  - 23-05-10. This project is still quickly updating 🌝. Check TODO list to see what will be released next.
  - 23-05-11. GitHub Dicussion opened. You guys can now talk, code and make friends on the playground 👨‍❤️‍👨. 
  - 23-12-22. Released data loader and example case on [REFUGE](https://refuge.grand-challenge.org/) dataset. Credit: @jiayuanz3
@@ -25,7 +26,13 @@ This method is elaborated on the paper [Medical SAM Adapter: Adapting Segment An
  - 24-01-21. We've added [LoRA](https://huggingface.co/docs/diffusers/training/lora) to our framework🤖. Use it by setting ``-mod`` as ``sam_lora``.
 A guidance can be found in [here](https://github.com/KidsWithTokens/Medical-SAM-Adapter/blob/main/guidance/lora.ipynb). Credit: @shinning0821
  - 24-01-22. We've added datasetloader for [LIDC dataset](https://paperswithcode.com/dataset/lidc-idri), a multi-rater(4 raters 👨‍⚕️🧑🏽‍⚕️👩‍⚕️🧑🏽‍⚕️) lesions segmentation from low-dose lung CTs 🩻. You can download the preprocessed LIDC dataset at [here](https://github.com/stefanknegt/Probabilistic-Unet-Pytorch). Also updated environment, and random_click function. Credit: @jiayuanz3
+ - 24-03-06. We've supported multi-class segmentation. Use it by setting ``-multimask_output`` to the number of classes favored. Also updated REFUGE example to two classes (optic disc & cup). Credit: @LJQCN101
 
+## Medical Adapter Zoo 🐘🐊🦍🦒🦨🦜🦥
+We've released a bunch of pre-trained Adapters for various organs/lesions in [Medical-Adapter-Zoo](https://huggingface.co/KidsWithTokens/Medical-Adapter-Zoo/tree/main). Just pick the adapter that matches your disease and easily adjust SAM to suit your specific needs 😉. 
+
+If you can't find what you're looking for. Please suggest it through any contact method available to us (GitHub issue, HuggingFace community, or [Discord](https://discord.gg/EqbgSPEX)). We'll do our very best to include it.
+ 
  ## Requirement
 
  Install the environment:
@@ -116,7 +123,7 @@ The following figure shows image patches with the organ sub-regions that are ann
 Download BTCV dataset from: https://www.synapse.org/#!Synapse:syn3193805/wiki/217752. After you open the link, navigate to the "Files" tab, then download Abdomen/RawData.zip.
 After downloading the zip file, unzip. Then put images from RawData/Training/img in ../data/imagesTr, and put labels from RawData/Training/label in ../data/labelsTr.
 Download the json file for data splits from this [link](https://drive.google.com/file/d/1qcGh41p-rI3H_sQ0JwOAhNiQSXriQqGi/view). Place the JSON file at ../data/dataset_0.json.
-2. For the Adaptation, run: ``python train.py -net sam -mod sam_adpt -exp_name msa-3d-sam-btcv -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 8 -dataset decathlon -thd True -chunk 96 -dataset ../data -num_sample 4``  
+2. For the Adaptation, run: ``python train.py -net sam -mod sam_adpt -exp_name msa-3d-sam-btcv -sam_ckpt ./checkpoint/sam/sam_vit_b_01ec64.pth -image_size 1024 -b 8 -dataset decathlon -thd True -chunk 96 -data_path ../data -num_sample 4``  
 You can modify following parameters to save the memory usage: '-b' the batch size, '-chunk' the 3D depth (channel) for each sample, '-num_sample' number of samples for [Monai.RandCropByPosNegLabeld](https://docs.monai.io/en/stable/transforms.html#randcropbyposneglabeld), 'evl_chunk' the 3D channel split step in the evaluation, decrease it if out of memory in the evaluation. 
 ## Run on  your own dataset
 It is simple to run MSA on the other datasets. Just write another dataset class following which in `` ./dataset.py``. You only need to make sure you return a dict with 
@@ -149,13 +156,18 @@ Welcome to open issues if you meet any problem. It would be appreciated if you c
 
  ## Cite
  ~~~
- @article{wu2023medical,
-   title={Medical sam adapter: Adapting segment anything model for medical image segmentation},
-   author={Wu, Junde and Fu, Rao and Fang, Huihui and Liu, Yuanpei and Wang, Zhaowei and Xu, Yanwu and Jin, Yueming and Arbel, Tal},
-   journal={arXiv preprint arXiv:2304.12620},
-   year={2023}
- }
+@misc{wu2023medical,
+      title={Medical SAM Adapter: Adapting Segment Anything Model for Medical Image Segmentation}, 
+      author={Junde Wu and Wei Ji and Yuanpei Liu and Huazhu Fu and Min Xu and Yanwu Xu and Yueming Jin},
+      year={2023},
+      eprint={2304.12620},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
  ~~~
+
+## Buy Me A Coffee 🥤😉
+https://ko-fi.com/jundewu
 
 
 

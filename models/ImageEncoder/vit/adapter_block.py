@@ -78,7 +78,10 @@ class AdapterBlock(nn.Module):
          ## 3d branch
         if self.args.thd: 
             hh, ww = x.shape[1], x.shape[2]
-            depth = self.args.chunk
+            if self.args.chunk:
+                depth = self.args.chunk
+            else:
+                depth = x.shape[0]
             xd = rearrange(x, '(b d) h w c -> (b h w) d c ', d=depth)
             # xd = rearrange(xd, '(b d) n c -> (b n) d c', d=self.in_chans)
             xd = self.norm1(xd)

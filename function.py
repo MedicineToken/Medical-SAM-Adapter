@@ -91,6 +91,8 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
             name = pack['image_meta_dict']['filename_or_obj']
 
             if args.thd:
+                imgs, pt, masks = generate_click_prompt(imgs, masks)
+
                 pt = rearrange(pt, 'b n d -> (b d) n')
                 imgs = rearrange(imgs, 'b c h w d -> (b d) c h w ')
                 masks = rearrange(masks, 'b c h w d -> (b d) c h w ')
@@ -100,7 +102,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
 
                 imgs = torchvision.transforms.Resize((args.image_size,args.image_size))(imgs)
                 masks = torchvision.transforms.Resize((args.out_size,args.out_size))(masks)
-            
             showp = pt
 
             mask_type = torch.float32
@@ -159,7 +160,15 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                         labels=labels_torch,
                     )
                     
-            if args.net == 'sam' or args.net == 'mobile_sam':
+            if args.net == 'sam':
+                pred, _ = net.mask_decoder(
+                    image_embeddings=imge,
+                    image_pe=net.prompt_encoder.get_dense_pe(), 
+                    sparse_prompt_embeddings=se,
+                    dense_prompt_embeddings=de, 
+                    multimask_output=(args.multimask_output > 1),
+                )
+            elif args.net == 'mobile_sam':
                 pred, _ = net.mask_decoder(
                     image_embeddings=imge,
                     image_pe=net.prompt_encoder.get_dense_pe(), 
@@ -167,7 +176,6 @@ def train_sam(args, net: nn.Module, optimizer, train_loader,
                     dense_prompt_embeddings=de, 
                     multimask_output=False,
                 )
-
             elif args.net == "efficient_sam":
                 se = se.view(
                     se.shape[0],
@@ -219,7 +227,7 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
 
     mask_type = torch.float32
     n_val = len(val_loader)  # the number of batch
-    ave_res, mix_res = (0,0,0,0), (0,0,0,0)
+    ave_res, mix_res = (0,0,0,0), (0,)*args.multimask_output*2
     rater_res = [(0,0,0,0) for _ in range(6)]
     tot = 0
     hard = 0
@@ -238,7 +246,7 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
             masksw = pack['label'].to(dtype = torch.float32, device = GPUdevice)
             # for k,v in pack['image_meta_dict'].items():
             #     print(k)
-            if 'pt' not in pack:
+            if 'pt' not in pack or args.thd:
                 imgsw, ptw, masksw = generate_click_prompt(imgsw, masksw)
             else:
                 ptw = pack['pt']
@@ -309,7 +317,15 @@ def validation_sam(args, val_loader, epoch, net: nn.Module, clean_dir=True):
                             labels=labels_torch,
                         )
 
-                    if args.net == 'sam' or args.net == 'mobile_sam':
+                    if args.net == 'sam':
+                        pred, _ = net.mask_decoder(
+                            image_embeddings=imge,
+                            image_pe=net.prompt_encoder.get_dense_pe(), 
+                            sparse_prompt_embeddings=se,
+                            dense_prompt_embeddings=de, 
+                            multimask_output=(args.multimask_output > 1),
+                        )
+                    elif args.net == 'mobile_sam':
                         pred, _ = net.mask_decoder(
                             image_embeddings=imge,
                             image_pe=net.prompt_encoder.get_dense_pe(), 

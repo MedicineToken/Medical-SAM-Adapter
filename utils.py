@@ -963,12 +963,22 @@ def vis_image(imgs, pred_masks, gt_masks, save_path, reverse = False, points = N
     if reverse == True:
         pred_masks = 1 - pred_masks
         gt_masks = 1 - gt_masks
-    if c == 2:
+    if c == 2: # for REFUGE multi mask output
         pred_disc, pred_cup = pred_masks[:,0,:,:].unsqueeze(1).expand(b,3,h,w), pred_masks[:,1,:,:].unsqueeze(1).expand(b,3,h,w)
         gt_disc, gt_cup = gt_masks[:,0,:,:].unsqueeze(1).expand(b,3,h,w), gt_masks[:,1,:,:].unsqueeze(1).expand(b,3,h,w)
         tup = (imgs[:row_num,:,:,:],pred_disc[:row_num,:,:,:], pred_cup[:row_num,:,:,:], gt_disc[:row_num,:,:,:], gt_cup[:row_num,:,:,:])
-        # compose = torch.cat((imgs[:row_num,:,:,:],pred_disc[:row_num,:,:,:], pred_cup[:row_num,:,:,:], gt_disc[:row_num,:,:,:], gt_cup[:row_num,:,:,:]),0)
-        compose = torch.cat((pred_disc[:row_num,:,:,:], pred_cup[:row_num,:,:,:], gt_disc[:row_num,:,:,:], gt_cup[:row_num,:,:,:]),0)
+        compose = torch.cat(tup, 0)
+        vutils.save_image(compose, fp = save_path, nrow = row_num, padding = 10)
+    elif c > 2: # for multi-class segmentation > 2 classes
+        preds = []
+        gts = []
+        for i in range(0, c):
+            pred = pred_masks[:,i,:,:].unsqueeze(1).expand(b,3,h,w)
+            preds.append(pred)
+            gt = gt_masks[:,i,:,:].unsqueeze(1).expand(b,3,h,w)
+            gts.append(gt)
+        tup = [imgs[:row_num,:,:,:]] + preds + gts
+        compose = torch.cat(tup,0)
         vutils.save_image(compose, fp = save_path, nrow = row_num, padding = 10)
     else:
         imgs = torchvision.transforms.Resize((h,w))(imgs)
@@ -1023,6 +1033,24 @@ def eval_seg(pred,true_mask_p,threshold):
             cup_dice += dice_coeff(vpred[:,1,:,:], gt_vmask_p[:,1,:,:]).item()
             
         return iou_d / len(threshold), iou_c / len(threshold), disc_dice / len(threshold), cup_dice / len(threshold)
+    elif c > 2: # for multi-class segmentation > 2 classes
+        ious = [0] * c
+        dices = [0] * c
+        for th in threshold:
+            gt_vmask_p = (true_mask_p > th).float()
+            vpred = (pred > th).float()
+            vpred_cpu = vpred.cpu()
+            for i in range(0, c):
+                pred = vpred_cpu[:,i,:,:].numpy().astype('int32')
+                mask = gt_vmask_p[:,i,:,:].squeeze(1).cpu().numpy().astype('int32')
+        
+                '''iou for numpy'''
+                ious[i] += iou(pred,mask)
+
+                '''dice for torch'''
+                dices[i] += dice_coeff(vpred[:,i,:,:], gt_vmask_p[:,i,:,:]).item()
+            
+        return tuple(np.array(ious + dices) / len(threshold)) # tuple has a total number of c * 2
     else:
         eiou, edice = 0,0
         for th in threshold:
@@ -1162,4 +1190,24 @@ def generate_click_prompt(img, msk, pt_label = 1):
     return img, pt, msk #[b, 2, d], [b, c, h, w, d]
 
 
+def random_box(multi_rater):
+    max_value = torch.max(multi_rater[:,0,:,:], dim=0)[0]
+    max_value_position = torch.nonzero(max_value)
+
+    x_coords = max_value_position[:, 0]
+    y_coords = max_value_position[:, 1]
+
+
+    x_min = int(torch.min(x_coords))
+    x_max = int(torch.max(x_coords))
+    y_min = int(torch.min(y_coords))
+    y_max = int(torch.max(y_coords))
+
+
+    x_min = random.choice(np.arange(x_min-10,x_min+11))
+    x_max = random.choice(np.arange(x_max-10,x_max+11))
+    y_min = random.choice(np.arange(y_min-10,y_min+11))
+    y_max = random.choice(np.arange(y_max-10,y_max+11))
+
+    return x_min, x_max, y_min, y_max
 

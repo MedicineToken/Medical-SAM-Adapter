@@ -37,7 +37,7 @@ while i * 5 <= EPOCH:
 #INIT_LR = 0.1
 
 #time of we run the script
-TIME_NOW = datetime.now().isoformat()
+TIME_NOW = datetime.now().strftime("%F_%H-%M-%S.%f")
 
 #tensorboard log dir
 LOG_DIR = 'runs'

@@ -80,48 +80,7 @@ logger = create_logger(args.path_helper['log_path'])
 logger.info(args)
 
 '''segmentation data'''
-transform_train = transforms.Compose([
-    transforms.Resize((args.image_size,args.image_size)),
-    transforms.ToTensor(),
-])
-
-transform_train_seg = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Resize((args.image_size,args.image_size)),
-])
-
-transform_test = transforms.Compose([
-    transforms.Resize((args.image_size, args.image_size)),
-    transforms.ToTensor(),
-])
-
-transform_test_seg = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Resize((args.image_size, args.image_size)),
-    
-])
-'''data end'''
-if args.dataset == 'isic':
-    '''isic data'''
-    isic_train_dataset = ISIC2016(args, args.data_path, transform = transform_train, transform_msk= transform_train_seg, mode = 'Training')
-    isic_test_dataset = ISIC2016(args, args.data_path, transform = transform_test, transform_msk= transform_test_seg, mode = 'Test')
-
-    nice_train_loader = DataLoader(isic_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
-    nice_test_loader = DataLoader(isic_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
-    '''end'''
-
-elif args.dataset == 'decathlon':
-    nice_train_loader, nice_test_loader, transform_train, transform_val, train_list, val_list =get_decath_loader(args)
-
-elif args.dataset == 'REFUGE':
-    '''REFUGE data'''
-    refuge_train_dataset = REFUGE(args, args.data_path, transform = transform_train, transform_msk= transform_train_seg, mode = 'Training')
-    refuge_test_dataset = REFUGE(args, args.data_path, transform = transform_test, transform_msk= transform_test_seg, mode = 'Test')
-
-    nice_train_loader = DataLoader(refuge_train_dataset, batch_size=args.b, shuffle=True, num_workers=8, pin_memory=True)
-    nice_test_loader = DataLoader(refuge_test_dataset, batch_size=args.b, shuffle=False, num_workers=8, pin_memory=True)
-    '''end'''
-
+nice_train_loader, nice_test_loader = get_dataloader(args)
 
 '''begain valuation'''
 best_acc = 0.0
